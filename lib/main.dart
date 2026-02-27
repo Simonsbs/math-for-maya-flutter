@@ -800,27 +800,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                       children: [
                         const Text('Solve'),
                         const SizedBox(height: 4),
-                        SizedBox(
-                          width: 132,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              _eqLine('${_equation.a}'),
-                              _eqLine(
-                                '${_operationSymbol[_equation.operation]} ${_equation.b}',
-                              ),
-                              const Divider(thickness: 2),
-                              if (_isRemainderMode)
-                                _remainderAnswerDisplay()
-                              else
-                                _eqLine(
-                                  _revealedSolution
-                                      ? '${_equation.result}'
-                                      : (_answer.isEmpty ? '?' : _answer),
-                                ),
-                            ],
-                          ),
-                        ),
+                        _verticalEquationWidget(),
                         if (_isRemainderMode) ...[
                           const SizedBox(height: 4),
                           Row(
@@ -1026,6 +1006,130 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         height: 1.15,
         fontWeight: FontWeight.w800,
         fontFeatures: [FontFeature.tabularFigures()],
+      ),
+    );
+  }
+
+  Widget _verticalEquationWidget() {
+    if (_isRemainderMode) {
+      return SizedBox(
+        width: 132,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _eqLine('${_equation.a}'),
+            _eqLine('${_operationSymbol[_equation.operation]} ${_equation.b}'),
+            const Divider(thickness: 2),
+            _remainderAnswerDisplay(),
+          ],
+        ),
+      );
+    }
+
+    final top = _equation.a.toString();
+    final bottom = _equation.b.toString();
+    final liveAnswer =
+        _revealedSolution
+            ? _equation.result.toString()
+            : (_answer.isEmpty ? '?' : _answer);
+    final colCount = max(
+      max(top.length, bottom.length),
+      max(_equation.result.toString().length, liveAnswer.length),
+    );
+
+    final carries =
+        _equation.operation == Operation.addition
+            ? _additionCarryRow(_equation.a, _equation.b, colCount)
+            : List<String>.filled(colCount, '');
+
+    return SizedBox(
+      width: (colCount + 1) * 22,
+      child: Column(
+        children: [
+          if (_equation.operation == Operation.addition)
+            _equationRow(
+              leading: '',
+              digits: carries,
+              fontSize: 14,
+              color: Colors.deepOrange,
+              weight: FontWeight.w900,
+            ),
+          _equationRow(leading: '', digits: _alignDigits(top, colCount)),
+          _equationRow(
+            leading: _operationSymbol[_equation.operation]!,
+            digits: _alignDigits(bottom, colCount),
+          ),
+          const Divider(thickness: 2, height: 10),
+          _equationRow(leading: '', digits: _alignDigits(liveAnswer, colCount)),
+        ],
+      ),
+    );
+  }
+
+  List<String> _alignDigits(String value, int colCount) {
+    final digits = value.split('');
+    if (digits.length >= colCount) return digits;
+    return List<String>.filled(colCount - digits.length, '') + digits;
+  }
+
+  List<String> _additionCarryRow(int a, int b, int colCount) {
+    final row = List<String>.filled(colCount, '');
+    int left = a;
+    int right = b;
+    int carry = 0;
+    int colFromRight = 0;
+    while (left > 0 || right > 0) {
+      final sum = (left % 10) + (right % 10) + carry;
+      carry = sum ~/ 10;
+      if (carry > 0) {
+        final targetColFromRight = colFromRight + 1;
+        final index = colCount - 1 - targetColFromRight;
+        if (index >= 0 && index < row.length) {
+          row[index] = '$carry';
+        }
+      }
+      left ~/= 10;
+      right ~/= 10;
+      colFromRight += 1;
+    }
+    return row;
+  }
+
+  Widget _equationRow({
+    required String leading,
+    required List<String> digits,
+    double fontSize = 30,
+    Color? color,
+    FontWeight weight = FontWeight.w800,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _digitCell(leading, fontSize: fontSize, color: color, weight: weight),
+        for (final digit in digits)
+          _digitCell(digit, fontSize: fontSize, color: color, weight: weight),
+      ],
+    );
+  }
+
+  Widget _digitCell(
+    String value, {
+    required double fontSize,
+    Color? color,
+    required FontWeight weight,
+  }) {
+    return SizedBox(
+      width: 22,
+      child: Text(
+        value,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.05,
+          color: color,
+          fontWeight: weight,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }
