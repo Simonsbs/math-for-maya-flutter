@@ -1135,12 +1135,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       child: Column(
         children: [
           if (showCarryRow)
-            _equationRow(
-              leading: '',
-              digits: carryDisplayDigits,
-              fontSize: 13,
+            _carryEquationRow(
+              carryDisplayDigits,
               color: _revealedSolution ? Colors.deepOrange : Colors.indigo,
-              weight: FontWeight.w900,
             ),
           if (showBorrowRow)
             _equationRow(
@@ -1305,6 +1302,39 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         for (final digit in digits)
           _digitCell(digit, fontSize: fontSize, color: color, weight: weight),
       ],
+    );
+  }
+
+  Widget _carryEquationRow(List<String> digits, {required Color color}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          _digitCell('', fontSize: 12, color: color, weight: FontWeight.w900),
+          for (final digit in digits) _carryDigitCell(digit, color: color),
+        ],
+      ),
+    );
+  }
+
+  Widget _carryDigitCell(String value, {required Color color}) {
+    return SizedBox(
+      width: 22,
+      child: Transform.translate(
+        offset: const Offset(-3, -2),
+        child: Text(
+          value,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            height: 1.0,
+            color: color,
+            fontWeight: FontWeight.w900,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ),
     );
   }
 
