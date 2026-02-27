@@ -645,9 +645,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   : Text(
                     _titleForPage(),
                     textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
         ),
         const SizedBox(width: 48),
@@ -671,7 +671,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             color: const Color(0xFFE7F0FF),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.auto_awesome, size: 18, color: Color(0xFF2A7FFF)),
+          child: const Icon(
+            Icons.auto_awesome,
+            size: 18,
+            color: Color(0xFF2A7FFF),
+          ),
         ),
         const SizedBox(width: 8),
         Text('Math For Maya', style: titleStyle),
@@ -922,7 +926,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                           icon: const Icon(Icons.close_rounded, size: 20),
                           label: const Text(
                             'Cancel',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ),
@@ -936,10 +943,16 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          icon: const Icon(Icons.rocket_launch_rounded, size: 20),
+                          icon: const Icon(
+                            Icons.rocket_launch_rounded,
+                            size: 20,
+                          ),
                           label: const Text(
                             'Start Round',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ),
@@ -985,7 +998,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconTheme(data: IconThemeData(color: fg, size: 19), child: leading),
+              IconTheme(
+                data: IconThemeData(color: fg, size: 19),
+                child: leading,
+              ),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -1029,40 +1045,57 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       children: [
         _statusPanel(),
         const SizedBox(height: 8),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _isEndlessRound
-                            ? 'Question $_questionNumber (Endless)'
-                            : 'Question $_questionNumber of $_roundLength',
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEAF0FF),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD5E0FB)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isEndlessRound
+                          ? 'Question $_questionNumber - Endless'
+                          : 'Question $_questionNumber of $_roundLength',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1F2A44),
                       ),
-                      const SizedBox(height: 6),
-                      LinearProgressIndicator(value: progress),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: _endRoundEarly,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 42),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
                     ),
-                  ),
-                  child: const Text('End Game'),
+                    const SizedBox(height: 7),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        minHeight: 8,
+                        value: progress,
+                        backgroundColor: const Color(0xFFD7E2FB),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton.tonalIcon(
+                onPressed: _endRoundEarly,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                ),
+                icon: const Icon(Icons.stop_circle_outlined, size: 18),
+                label: const Text(
+                  'End',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -1074,33 +1107,64 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                 child: Card(
                   margin: EdgeInsets.zero,
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
                     child: Column(
                       children: [
-                        const Text('Solve'),
-                        const SizedBox(height: 4),
-                        _verticalEquationWidget(),
+                        Row(
+                          children: const [
+                            Icon(
+                              Icons.calculate_outlined,
+                              size: 18,
+                              color: Color(0xFF3D4E76),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Solve',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF3D4E76),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Expanded(
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: _verticalEquationWidget(),
+                            ),
+                          ),
+                        ),
                         if (_canUseCarryInput && !_revealedSolution)
                           Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: FilledButton.tonal(
-                              style: _compactActionButtonStyle(),
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: FilledButton.tonalIcon(
+                              style: _compactActionButtonStyle(
+                                isPrimary: false,
+                              ),
                               onPressed: _carryTheOne,
-                              child: const Text('Carry the 1'),
+                              icon: const Icon(
+                                Icons.keyboard_double_arrow_left,
+                              ),
+                              label: const Text('Carry the 1'),
                             ),
                           ),
                         if (_equation.operation == Operation.subtraction &&
                             !_revealedSolution)
                           Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: FilledButton.tonal(
-                              style: _compactActionButtonStyle(),
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: FilledButton.tonalIcon(
+                              style: _compactActionButtonStyle(
+                                isPrimary: false,
+                              ),
                               onPressed: _borrowOne,
-                              child: const Text('Borrow 1'),
+                              icon: const Icon(Icons.redo_rounded),
+                              label: const Text('Borrow 1'),
                             ),
                           ),
                         if (_isRemainderMode) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Row(
                             children: [
                               Expanded(
@@ -1135,56 +1199,94 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 6),
                         ],
-                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Expanded(
-                              child: FilledButton.tonal(
-                                style: _compactActionButtonStyle(),
+                              child: FilledButton.tonalIcon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: false,
+                                ),
                                 onPressed: _hintAction,
-                                child: const Text('Hint'),
+                                icon: const Icon(
+                                  Icons.lightbulb_outline_rounded,
+                                ),
+                                label: const Text('Hint'),
                               ),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: FilledButton.tonal(
-                                style: _compactActionButtonStyle(),
+                              child: FilledButton.tonalIcon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: false,
+                                ),
                                 onPressed: _checkAnswer,
-                                child: const Text('Check'),
+                                icon: const Icon(Icons.task_alt_rounded),
+                                label: const Text('Check'),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             Expanded(
-                              child: FilledButton.tonal(
-                                style: _compactActionButtonStyle(),
+                              child: FilledButton.tonalIcon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: false,
+                                ),
                                 onPressed: _showSolution,
-                                child: const Text('Show'),
+                                icon: const Icon(Icons.visibility_outlined),
+                                label: const Text('Show'),
                               ),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: FilledButton(
-                                style: _compactActionButtonStyle(),
+                              child: FilledButton.icon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: true,
+                                ),
                                 onPressed: _nextEquation,
-                                child: const Text('Next'),
+                                icon: const Icon(Icons.arrow_forward_rounded),
+                                label: const Text('Next'),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          height: 16,
+                        const SizedBox(height: 6),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 160),
+                          width: double.infinity,
+                          height: 26,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          alignment: Alignment.centerLeft,
+                          decoration: BoxDecoration(
+                            color:
+                                (_hint.isNotEmpty || _feedback.isNotEmpty)
+                                    ? const Color(0xFFF0F4FF)
+                                    : const Color(0xFFF7F9FF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color:
+                                  (_hint.isNotEmpty || _feedback.isNotEmpty)
+                                      ? const Color(0xFFD3DEFA)
+                                      : const Color(0xFFE7ECFA),
+                            ),
+                          ),
                           child: Text(
                             _hint.isNotEmpty
                                 ? _hint
-                                : (_feedback.isNotEmpty ? _feedback : ''),
+                                : (_feedback.isNotEmpty
+                                    ? _feedback
+                                    : 'Enter your answer below'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF3E4A67),
+                            ),
                           ),
                         ),
                       ],
@@ -1204,7 +1306,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                       physics: const NeverScrollableScrollPhysics(),
                       mainAxisSpacing: 8,
                       crossAxisSpacing: 8,
-                      childAspectRatio: 1.9,
+                      childAspectRatio: 1.85,
                       children: [
                         ...[
                           '1',
@@ -1223,19 +1325,24 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             onPressed: () => _tapDigit(digit),
                             child: Text(
                               digit,
-                              style: const TextStyle(fontSize: 26),
+                              style: const TextStyle(
+                                fontSize: 29,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
-                        FilledButton.tonal(
+                        FilledButton.tonalIcon(
                           style: _keypadButtonStyle(),
                           onPressed: _backspace,
-                          child: const Text('Del'),
+                          icon: const Icon(Icons.backspace_outlined, size: 18),
+                          label: const Text('Del'),
                         ),
-                        FilledButton.tonal(
+                        FilledButton.tonalIcon(
                           style: _keypadButtonStyle(),
                           onPressed: _clear,
-                          child: const Text('Clear'),
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          label: const Text('Clear'),
                         ),
                       ],
                     ),
@@ -1603,10 +1710,13 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     );
   }
 
-  ButtonStyle _compactActionButtonStyle() {
+  ButtonStyle _compactActionButtonStyle({required bool isPrimary}) {
     return FilledButton.styleFrom(
-      minimumSize: const Size(0, 44),
+      minimumSize: const Size(0, 46),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      backgroundColor: isPrimary ? const Color(0xFF3D5EA8) : null,
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.standard,
     );
@@ -1616,6 +1726,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     return FilledButton.styleFrom(
       minimumSize: const Size(0, 50),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+      backgroundColor: const Color(0xFF3E5A97),
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.standard,
     );
