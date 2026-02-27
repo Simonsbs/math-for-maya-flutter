@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:confetti/confetti.dart';
@@ -118,6 +119,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   bool _answeredCorrectly = false;
   String _carryMarks = '';
   String _borrowMarks = '';
+  int _confettiBurstKey = 0;
   late final ConfettiController _confettiController;
 
   RoundStats _roundStats = RoundStats.empty;
@@ -490,10 +492,15 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _playCorrectEffects() {
-    // Reset animation state so confetti reliably replays every time.
-    _confettiController
-      ..stop()
-      ..play();
+    // Force a fresh confetti burst each time a new answer is marked correct.
+    setState(() {
+      _confettiBurstKey += 1;
+    });
+    _confettiController.stop();
+    Future<void>.delayed(const Duration(milliseconds: 70), () {
+      if (!mounted) return;
+      _confettiController.play();
+    });
     SystemSound.play(SystemSoundType.alert);
   }
 
@@ -594,10 +601,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             child: Align(
               alignment: Alignment.topCenter,
               child: ConfettiWidget(
+                key: ValueKey(_confettiBurstKey),
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
-                numberOfParticles: 28,
+                numberOfParticles: 42,
                 emissionFrequency: 0.03,
                 gravity: 0.35,
                 minBlastForce: 10,
