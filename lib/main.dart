@@ -116,6 +116,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   bool _revealedSolution = false;
   bool _answeredCorrectly = false;
   String _carryMarks = '';
+  String _borrowMarks = '';
 
   RoundStats _roundStats = RoundStats.empty;
 
@@ -241,6 +242,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     _revealedSolution = false;
     _answeredCorrectly = false;
     _carryMarks = '';
+    _borrowMarks = '';
   }
 
   void _startRound() {
@@ -504,6 +506,26 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       _feedback = '';
       _mayaMood = MayaMood.thinking;
       _mayaLine = 'Carry 1 added.';
+    });
+  }
+
+  void _borrowOne() {
+    if (_equation.operation != Operation.subtraction || _revealedSolution) {
+      return;
+    }
+    setState(() {
+      if (_currentColumnCount < 2) {
+        _mayaMood = MayaMood.thinking;
+        _mayaLine = 'No next column to borrow from yet.';
+        _feedback = '';
+        return;
+      }
+      if (_borrowMarks.length < 8) {
+        _borrowMarks = '$_borrowMarks${1}';
+      }
+      _feedback = '';
+      _mayaMood = MayaMood.thinking;
+      _mayaLine = 'Borrow 1 added.';
     });
   }
 
@@ -842,6 +864,16 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                               child: const Text('Carry the 1'),
                             ),
                           ),
+                        if (_equation.operation == Operation.subtraction &&
+                            !_revealedSolution)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: FilledButton.tonal(
+                              style: _compactActionButtonStyle(),
+                              onPressed: _borrowOne,
+                              child: const Text('Borrow 1'),
+                            ),
+                          ),
                         if (_isRemainderMode) ...[
                           const SizedBox(height: 4),
                           Row(
@@ -1082,11 +1114,15 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _equation.operation == Operation.addition
             ? _additionCarryRow(_equation.a, _equation.b, colCount)
             : List<String>.filled(colCount, '');
+    final borrowDisplayDigits = _manualBorrowRow(colCount);
+    final hasVisibleBorrow = borrowDisplayDigits.any((d) => d.isNotEmpty);
     final carryDisplayDigits =
         _revealedSolution ? carries : _manualCarryRow(colCount);
     final hasVisibleCarry = carryDisplayDigits.any((d) => d.isNotEmpty);
     final showCarryRow =
         _equation.operation == Operation.addition && hasVisibleCarry;
+    final showBorrowRow =
+        _equation.operation == Operation.subtraction && hasVisibleBorrow;
 
     return SizedBox(
       width: (colCount + 1) * 22,
@@ -1098,6 +1134,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               digits: carryDisplayDigits,
               fontSize: 14,
               color: _revealedSolution ? Colors.deepOrange : Colors.indigo,
+              weight: FontWeight.w900,
+            ),
+          if (showBorrowRow)
+            _equationRow(
+              leading: '',
+              digits: borrowDisplayDigits,
+              fontSize: 14,
+              color: Colors.deepPurple,
               weight: FontWeight.w900,
             ),
           _equationRow(leading: '', digits: _alignDigits(top, colCount)),
@@ -1147,6 +1191,16 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       final index = colCount - 2 - i;
       if (index < 0 || index >= row.length) break;
       row[index] = _carryMarks[i];
+    }
+    return row;
+  }
+
+  List<String> _manualBorrowRow(int colCount) {
+    final row = List<String>.filled(colCount, '');
+    for (int i = 0; i < _borrowMarks.length; i++) {
+      final index = colCount - 1 - i;
+      if (index < 0 || index >= row.length) break;
+      row[index] = _borrowMarks[i];
     }
     return row;
   }
