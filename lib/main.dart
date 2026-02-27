@@ -813,7 +813,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'Operation',
@@ -821,16 +821,21 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
                     children:
                         _enabledOperations
                             .map(
-                              (op) => ChoiceChip(
-                                label: Text(_operationLabel[op]!),
+                              (op) => _setupOptionButton(
+                                label: _operationLabel[op]!,
+                                icon:
+                                    op == Operation.addition
+                                        ? Icons.add_rounded
+                                        : Icons.remove_rounded,
                                 selected: _operation == op,
-                                onSelected:
-                                    (_) => setState(() => _operation = op),
+                                onTap: () => setState(() => _operation = op),
+                                minWidth: 156,
                               ),
                             )
                             .toList(),
@@ -842,15 +847,18 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
                     children:
                         _digitChoices
                             .map(
-                              (value) => ChoiceChip(
-                                label: Text('$value'),
+                              (value) => _setupOptionButton(
+                                label: '$value digits',
+                                icon: Icons.pin_outlined,
                                 selected: _digits == value,
-                                onSelected:
-                                    (_) => setState(() => _digits = value),
+                                onTap: () => setState(() => _digits = value),
+                                minWidth: 124,
                               ),
                             )
                             .toList(),
@@ -862,15 +870,19 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
                     children:
                         _roundChoices
                             .map(
-                              (value) => ChoiceChip(
-                                label: Text('$value'),
+                              (value) => _setupOptionButton(
+                                label: '$value questions',
+                                icon: Icons.checklist_rounded,
                                 selected: _roundLength == value,
-                                onSelected:
-                                    (_) => setState(() => _roundLength = value),
+                                onTap:
+                                    () => setState(() => _roundLength = value),
+                                minWidth: 150,
                               ),
                             )
                             .toList(),
@@ -899,6 +911,54 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _setupOptionButton({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+    required double minWidth,
+  }) {
+    final bg = selected ? const Color(0xFF2A7FFF) : const Color(0xFFE9EEFA);
+    final fg = selected ? Colors.white : const Color(0xFF27324A);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          constraints: BoxConstraints(minWidth: minWidth, minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color:
+                  selected ? const Color(0xFF1C5FD4) : const Color(0xFFD3DBF0),
+              width: selected ? 2 : 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 19, color: fg),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
