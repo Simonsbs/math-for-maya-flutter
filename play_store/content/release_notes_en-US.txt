@@ -1,0 +1,9 @@
+Initial internal testing release of Math For Maya.
+
+Includes:
+- Vertical equations module
+- Addition, subtraction, and mixed operation mode
+- Carry and borrow helper controls
+- Hint, check, and show solution actions
+- Endless mode and round summary dashboard
+- Positive visual feedback and celebration effects

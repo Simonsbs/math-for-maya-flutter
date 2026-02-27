@@ -1,0 +1,30 @@
+Math For Maya helps children build confidence with vertical arithmetic in a calm, encouraging format.
+
+Designed for focused practice, the app presents one equation at a time and keeps all controls on a single touch-friendly screen.
+
+What children can practice:
+- Addition
+- Subtraction
+- Mixed mode (random addition/subtraction each question)
+
+Learning-focused features:
+- Vertical equation layout (school-style)
+- Carry and borrow helper buttons
+- Hint button for guided support
+- Check answer and show solution actions
+- Positive, gentle mistake feedback to encourage retrying
+- Confetti celebration on correct answers
+
+Flexible setup:
+- Choose 1 to 4 digits
+- Choose fixed rounds (5, 10, 15) or Endless mode
+- Fast restart with setup-first flow
+
+Built for kids:
+- Large touch controls
+- Clear visual hierarchy
+- No ads
+- No in-app purchases
+- No account required
+
+Math For Maya is made for repeated daily practice and confidence-building through positive reinforcement.
