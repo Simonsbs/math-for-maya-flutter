@@ -1319,18 +1319,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                       crossAxisSpacing: 8,
                       childAspectRatio: 1.85,
                       children: [
-                        ...[
-                          '1',
-                          '2',
-                          '3',
-                          '4',
-                          '5',
-                          '6',
-                          '7',
-                          '8',
-                          '9',
-                          '0',
-                        ].map(
+                        ...['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(
                           (digit) => FilledButton(
                             style: _keypadButtonStyle(),
                             onPressed: () => _tapDigit(digit),
@@ -1344,13 +1333,24 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                           ),
                         ),
                         FilledButton.tonalIcon(
-                          style: _keypadButtonStyle(),
+                          style: _commandKeypadButtonStyle(),
                           onPressed: _backspace,
                           icon: const Icon(Icons.backspace_outlined, size: 18),
                           label: const Text('Del'),
                         ),
-                        FilledButton.tonalIcon(
+                        FilledButton(
                           style: _keypadButtonStyle(),
+                          onPressed: () => _tapDigit('0'),
+                          child: const Text(
+                            '0',
+                            style: TextStyle(
+                              fontSize: 29,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        FilledButton.tonalIcon(
+                          style: _commandKeypadButtonStyle(),
                           onPressed: _clear,
                           icon: const Icon(Icons.clear_rounded, size: 18),
                           label: const Text('Clear'),
@@ -1872,6 +1872,19 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
       backgroundColor: const Color(0xFF3E5A97),
       foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.standard,
+    );
+  }
+
+  ButtonStyle _commandKeypadButtonStyle() {
+    return FilledButton.styleFrom(
+      minimumSize: const Size(0, 50),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+      backgroundColor: const Color(0xFFDCE4FA),
+      foregroundColor: const Color(0xFF2A3A63),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.standard,
