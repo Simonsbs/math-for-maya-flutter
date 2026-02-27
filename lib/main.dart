@@ -1116,14 +1116,24 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             : List<String>.filled(colCount, '');
     final topDigits = _alignDigits(top, colCount);
     final borrowDisplayDigits = _manualBorrowRow(colCount);
-    final hasVisibleBorrow = borrowDisplayDigits.any((d) => d.isNotEmpty);
+    final borrowMarkedValues = _prefixedMarkedValues(
+      topDigits,
+      borrowDisplayDigits,
+    );
+    final hasVisibleBorrow = borrowMarkedValues.any((d) => d.isNotEmpty);
     final carryDisplayDigits =
         _revealedSolution ? carries : _manualCarryRow(colCount);
-    final hasVisibleCarry = carryDisplayDigits.any((d) => d.isNotEmpty);
+    final carryMarkedValues = _prefixedMarkedValues(
+      topDigits,
+      carryDisplayDigits,
+    );
+    final hasVisibleCarry = carryMarkedValues.any((d) => d.isNotEmpty);
     final showCarryRow =
         _equation.operation == Operation.addition && hasVisibleCarry;
     final showBorrowRow =
         _equation.operation == Operation.subtraction && hasVisibleBorrow;
+    final carryCrossedColumns = _markedColumns(carryDisplayDigits);
+    final borrowCrossedColumns = _markedColumns(borrowDisplayDigits);
 
     return SizedBox(
       width: (colCount + 1) * 22,
@@ -1132,15 +1142,27 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           if (showCarryRow)
             _equationRow(
               leading: '',
-              digits: carryDisplayDigits,
-              fontSize: 14,
+              digits: carryMarkedValues,
+              fontSize: 13,
               color: _revealedSolution ? Colors.deepOrange : Colors.indigo,
               weight: FontWeight.w900,
             ),
           if (showBorrowRow)
-            _borrowEquationRow(borrowDisplayDigits),
+            _equationRow(
+              leading: '',
+              digits: borrowMarkedValues,
+              fontSize: 13,
+              color: Colors.deepPurple,
+              weight: FontWeight.w900,
+            ),
           if (_equation.operation == Operation.subtraction && hasVisibleBorrow)
-            _subtractionTopRowWithBorrow(topDigits, colCount)
+            _subtractionTopRowWithBorrow(
+              topDigits,
+              colCount,
+              crossedColumns: borrowCrossedColumns,
+            )
+          else if (_equation.operation == Operation.addition && hasVisibleCarry)
+            _topRowWithCrossOut(topDigits, carryCrossedColumns)
           else
             _equationRow(leading: '', digits: topDigits),
           _equationRow(
@@ -1213,60 +1235,82 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     return counts;
   }
 
-  Widget _subtractionTopRowWithBorrow(List<String> topDigits, int colCount) {
+  List<String> _prefixedMarkedValues(List<String> digits, List<String> marks) {
+    final row = List<String>.filled(digits.length, '');
+    for (int i = 0; i < digits.length && i < marks.length; i++) {
+      if (marks[i].isEmpty) continue;
+      final base = digits[i].isEmpty ? '0' : digits[i];
+      row[i] = '1$base';
+    }
+    return row;
+  }
+
+  Set<int> _markedColumns(List<String> marks) {
+    final cols = <int>{};
+    for (int i = 0; i < marks.length; i++) {
+      if (marks[i].isNotEmpty) cols.add(i);
+    }
+    return cols;
+  }
+
+  Widget _topRowWithCrossOut(List<String> topDigits, Set<int> crossedColumns) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _digitCell('', fontSize: 30, weight: FontWeight.w800),
+        for (int i = 0; i < topDigits.length; i++)
+          _digitCell(
+            topDigits[i],
+            fontSize: 30,
+            weight: FontWeight.w800,
+            crossOut: crossedColumns.contains(i),
+          ),
+      ],
+    );
+  }
+
+  Widget _subtractionTopRowWithBorrow(
+    List<String> topDigits,
+    int colCount, {
+    required Set<int> crossedColumns,
+  }) {
     final donorCounts = _borrowDonorCounts(colCount);
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         _digitCell('', fontSize: 30, weight: FontWeight.w800),
         for (int i = 0; i < topDigits.length; i++)
-          _borrowTopDigitCell(topDigits[i], donorCounts[i] ?? 0),
+          _borrowTopDigitCell(
+            topDigits[i],
+            donorCounts[i] ?? 0,
+            crossOut: crossedColumns.contains(i),
+          ),
       ],
     );
   }
 
-  Widget _borrowTopDigitCell(String digit, int borrowCount) {
-    if (digit.isEmpty || borrowCount <= 0) {
-      return _digitCell(digit, fontSize: 30, weight: FontWeight.w800);
+  Widget _borrowTopDigitCell(
+    String digit,
+    int borrowCount, {
+    required bool crossOut,
+  }) {
+    var value = digit;
+    var color = Colors.black;
+    var weight = FontWeight.w800;
+
+    if (digit.isNotEmpty && borrowCount > 0) {
+      final original = int.tryParse(digit) ?? 0;
+      value = '${max(0, original - borrowCount)}';
+      color = Colors.deepPurple;
+      weight = FontWeight.w900;
     }
 
-    final original = int.tryParse(digit) ?? 0;
-    final updated = max(0, original - borrowCount);
     return _digitCell(
-      '$updated',
+      value,
       fontSize: 30,
-      color: Colors.deepPurple,
-      weight: FontWeight.w900,
-    );
-  }
-
-  Widget _borrowEquationRow(List<String> digits) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _digitCell('', fontSize: 18, color: Colors.deepPurple, weight: FontWeight.w900),
-        for (final digit in digits) _borrowIndicatorCell(digit),
-      ],
-    );
-  }
-
-  Widget _borrowIndicatorCell(String value) {
-    return SizedBox(
-      width: 22,
-      child: Transform.translate(
-        offset: const Offset(-5, 0),
-        child: Text(
-          value,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 18,
-            height: 1.0,
-            color: Colors.deepPurple,
-            fontWeight: FontWeight.w900,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
-      ),
+      color: color,
+      weight: weight,
+      crossOut: crossOut,
     );
   }
 
@@ -1292,6 +1336,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     required double fontSize,
     Color? color,
     required FontWeight weight,
+    bool crossOut = false,
   }) {
     return SizedBox(
       width: 22,
@@ -1304,6 +1349,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           color: color,
           fontWeight: weight,
           fontFeatures: const [FontFeature.tabularFigures()],
+          decoration:
+              crossOut ? TextDecoration.lineThrough : TextDecoration.none,
+          decorationThickness: crossOut ? 2 : null,
         ),
       ),
     );
