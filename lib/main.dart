@@ -12,7 +12,7 @@ Future<void> main() async {
   runApp(const MathForMayaApp());
 }
 
-enum Operation { addition, subtraction, multiplication, division }
+enum Operation { mixed, addition, subtraction, multiplication, division }
 
 enum AppPage { home, setup, play, summary }
 
@@ -130,11 +130,13 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   static const List<int> _digitChoices = [1, 2, 3, 4];
   static const List<int> _roundChoices = [5, 10, 15, -1];
   static const List<Operation> _enabledOperations = [
+    Operation.mixed,
     Operation.addition,
     Operation.subtraction,
   ];
 
   static const Map<Operation, String> _operationLabel = {
+    Operation.mixed: 'Mixed',
     Operation.addition: 'Addition',
     Operation.subtraction: 'Subtraction',
     Operation.multiplication: 'Multiplication',
@@ -142,6 +144,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   };
 
   static const Map<Operation, String> _operationSymbol = {
+    Operation.mixed: '?',
     Operation.addition: '+',
     Operation.subtraction: '-',
     Operation.multiplication: '×',
@@ -250,7 +253,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _resetQuestion() {
-    _equation = _generateEquation(_operation, _digits, _useRemainders);
+    final effectiveOperation =
+        _operation == Operation.mixed
+            ? (_random.nextBool() ? Operation.addition : Operation.subtraction)
+            : _operation;
+    _equation = _generateEquation(effectiveOperation, _digits, _useRemainders);
     _answer = '';
     _quotientAnswer = '';
     _remainderAnswer = '';
@@ -845,12 +852,12 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             .map(
                               (op) => _setupOptionButton(
                                 label: _operationLabel[op]!,
-                                leading: Icon(
-                                  op == Operation.addition
-                                      ? Icons.add_rounded
-                                      : Icons.remove_rounded,
-                                  size: 19,
-                                ),
+                                leading: Icon(switch (op) {
+                                  Operation.mixed => Icons.shuffle_rounded,
+                                  Operation.addition => Icons.add_rounded,
+                                  Operation.subtraction => Icons.remove_rounded,
+                                  _ => Icons.calculate_rounded,
+                                }, size: 19),
                                 selected: _operation == op,
                                 onTap: () => setState(() => _operation = op),
                                 minWidth: 156,
