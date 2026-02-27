@@ -167,6 +167,16 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       _equation.operation == Operation.division && _useRemainders;
   bool get _canUseCarryInput =>
       _equation.operation == Operation.addition && !_isRemainderMode;
+  int get _currentColumnCount {
+    final top = _equation.a.toString().length;
+    final bottom = _equation.b.toString().length;
+    final answerLen =
+        (_revealedSolution
+                ? _equation.result.toString()
+                : (_answer.isEmpty ? '?' : _answer))
+            .length;
+    return max(max(top, bottom), answerLen);
+  }
 
   Equation _generateEquation(
     Operation operation,
@@ -482,6 +492,12 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _carryTheOne() {
     if (!_canUseCarryInput || _revealedSolution) return;
     setState(() {
+      if (_currentColumnCount < 2) {
+        _mayaMood = MayaMood.thinking;
+        _mayaLine = 'No next column for carry yet.';
+        _feedback = '';
+        return;
+      }
       if (_carryMarks.length < 8) {
         _carryMarks = '$_carryMarks${1}';
       }
@@ -807,7 +823,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           child: Column(
             children: [
               Expanded(
-                flex: 5,
+                flex: 6,
                 child: Card(
                   margin: EdgeInsets.zero,
                   child: Padding(
@@ -921,7 +937,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                flex: 6,
+                flex: 5,
                 child: Card(
                   margin: EdgeInsets.zero,
                   child: Padding(
@@ -1066,11 +1082,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _equation.operation == Operation.addition
             ? _additionCarryRow(_equation.a, _equation.b, colCount)
             : List<String>.filled(colCount, '');
-    final showCarryRow =
-        _equation.operation == Operation.addition &&
-        (_revealedSolution || _carryMarks.isNotEmpty);
     final carryDisplayDigits =
         _revealedSolution ? carries : _manualCarryRow(colCount);
+    final hasVisibleCarry = carryDisplayDigits.any((d) => d.isNotEmpty);
+    final showCarryRow =
+        _equation.operation == Operation.addition && hasVisibleCarry;
 
     return SizedBox(
       width: (colCount + 1) * 22,
