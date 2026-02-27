@@ -1368,6 +1368,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   Widget _summaryPage() {
+    final attempts = _roundStats.correct + _roundStats.incorrect;
+    final accuracy =
+        attempts == 0 ? 0 : ((_roundStats.correct / attempts) * 100).round();
+
     return Column(
       key: const ValueKey('summary'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1375,33 +1379,161 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _statusPanel(),
         const SizedBox(height: 10),
         Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Round Complete',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 10),
-                  Text('Correct answers: ${_roundStats.correct}'),
-                  Text('Incorrect checks: ${_roundStats.incorrect}'),
-                  Text('Hints used: ${_roundStats.hintsUsed}'),
-                  Text('Solutions shown: ${_roundStats.solutionsShown}'),
-                  const Spacer(),
-                  FilledButton.tonal(
-                    onPressed: () => setState(() => _page = AppPage.setup),
-                    child: const Text('Play Again'),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: () => setState(() => _page = AppPage.home),
-                    child: const Text('Home'),
-                  ),
-                ],
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFEAF0FF), Color(0xFFF7F9FF)],
               ),
+              border: Border.all(color: const Color(0xFFD9E3FA)),
+            ),
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFD5E0FB)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCE7FF),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.emoji_events_rounded,
+                          color: Color(0xFF3D5EA8),
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Round Complete',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1F2A44),
+                              ),
+                            ),
+                            Text(
+                              'Accuracy: $accuracy%',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF45557A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: GridView.count(
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _summaryStatTile(
+                        label: 'Correct',
+                        value: '${_roundStats.correct}',
+                        icon: Icons.check_circle_rounded,
+                        bg: const Color(0xFFE6F7EA),
+                        iconColor: const Color(0xFF1B8E3E),
+                      ),
+                      _summaryStatTile(
+                        label: 'Incorrect',
+                        value: '${_roundStats.incorrect}',
+                        icon: Icons.cancel_rounded,
+                        bg: const Color(0xFFFFECEC),
+                        iconColor: const Color(0xFFC53A3A),
+                      ),
+                      _summaryStatTile(
+                        label: 'Hints',
+                        value: '${_roundStats.hintsUsed}',
+                        icon: Icons.lightbulb_rounded,
+                        bg: const Color(0xFFFFF6DF),
+                        iconColor: const Color(0xFFB27A00),
+                      ),
+                      _summaryStatTile(
+                        label: 'Solutions',
+                        value: '${_roundStats.solutionsShown}',
+                        icon: Icons.visibility_rounded,
+                        bg: const Color(0xFFEAF0FF),
+                        iconColor: const Color(0xFF3D5EA8),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _page = AppPage.home),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 54),
+                          side: const BorderSide(
+                            color: Color(0xFFADB9D6),
+                            width: 1.6,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.home_rounded, size: 20),
+                        label: const Text(
+                          'Home',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => setState(() => _page = AppPage.setup),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 54),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.replay_rounded, size: 20),
+                        label: const Text(
+                          'Play Again',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -1743,6 +1875,50 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.standard,
+    );
+  }
+
+  Widget _summaryStatTile({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color bg,
+    required Color iconColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.4,
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1F2A44),
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF45557A),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
