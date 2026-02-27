@@ -1138,13 +1138,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               weight: FontWeight.w900,
             ),
           if (showBorrowRow)
-            _equationRow(
-              leading: '',
-              digits: borrowDisplayDigits,
-              fontSize: 14,
-              color: Colors.deepPurple,
-              weight: FontWeight.w900,
-            ),
+            _borrowEquationRow(borrowDisplayDigits),
           if (_equation.operation == Operation.subtraction && hasVisibleBorrow)
             _subtractionTopRowWithBorrow(topDigits, colCount)
           else
@@ -1238,16 +1232,35 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
     final original = int.tryParse(digit) ?? 0;
     final updated = max(0, original - borrowCount);
+    return _digitCell(
+      '$updated',
+      fontSize: 30,
+      color: Colors.deepPurple,
+      weight: FontWeight.w900,
+    );
+  }
+
+  Widget _borrowEquationRow(List<String> digits) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _digitCell('', fontSize: 18, color: Colors.deepPurple, weight: FontWeight.w900),
+        for (final digit in digits) _borrowIndicatorCell(digit),
+      ],
+    );
+  }
+
+  Widget _borrowIndicatorCell(String value) {
     return SizedBox(
       width: 22,
       child: Transform.translate(
-        offset: const Offset(-4, 0),
+        offset: const Offset(-5, 0),
         child: Text(
-          '$updated',
+          value,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 30,
-            height: 1.05,
+            fontSize: 18,
+            height: 1.0,
             color: Colors.deepPurple,
             fontWeight: FontWeight.w900,
             fontFeatures: [FontFeature.tabularFigures()],
