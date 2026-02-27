@@ -1041,12 +1041,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _equation.operation == Operation.addition
             ? _additionCarryRow(_equation.a, _equation.b, colCount)
             : List<String>.filled(colCount, '');
+    final showCarryRow =
+        _equation.operation == Operation.addition && _revealedSolution;
 
     return SizedBox(
       width: (colCount + 1) * 22,
       child: Column(
         children: [
-          if (_equation.operation == Operation.addition)
+          if (showCarryRow)
             _equationRow(
               leading: '',
               digits: carries,
