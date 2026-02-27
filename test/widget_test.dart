@@ -13,6 +13,6 @@ void main() {
   testWidgets('Math For Maya home screen renders', (WidgetTester tester) async {
     await tester.pumpWidget(const MathForMayaApp());
     expect(find.text('Math For Maya'), findsOneWidget);
-    expect(find.text('Start Game'), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
   });
 }
