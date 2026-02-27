@@ -97,7 +97,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   AppPage _page = AppPage.home;
   Operation _operation = Operation.addition;
-  int _digits = 1;
+  int _digits = 2;
   int _roundLength = 10;
   final bool _useRemainders = false;
 
@@ -1065,13 +1065,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   Text('Hints used: ${_roundStats.hintsUsed}'),
                   Text('Solutions shown: ${_roundStats.solutionsShown}'),
                   const Spacer(),
-                  FilledButton(
-                    onPressed: () => setState(() => _page = AppPage.setup),
-                    child: const Text('Change Setup'),
-                  ),
-                  const SizedBox(height: 8),
                   FilledButton.tonal(
-                    onPressed: _startRound,
+                    onPressed: () => setState(() => _page = AppPage.setup),
                     child: const Text('Play Again'),
                   ),
                   const SizedBox(height: 8),
