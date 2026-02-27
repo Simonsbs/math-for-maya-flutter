@@ -1,8 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MathForMayaApp());
 }
 
@@ -337,37 +341,66 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titleForPage()),
-        leading:
-            _page == AppPage.home
-                ? null
-                : IconButton(
-                  onPressed:
-                      _page == AppPage.play
-                          ? null
-                          : () {
-                            setState(() {
-                              if (_page == AppPage.setup ||
-                                  _page == AppPage.summary) {
-                                _page = AppPage.home;
-                              }
-                            });
-                          },
-                  icon: const Icon(Icons.arrow_back),
-                ),
-      ),
       body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          child: switch (_page) {
-            AppPage.home => _homePage(),
-            AppPage.setup => _setupPage(),
-            AppPage.play => _playPage(),
-            AppPage.summary => _summaryPage(),
-          },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              _headerBar(),
+              const SizedBox(height: 10),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: switch (_page) {
+                    AppPage.home => _homePage(),
+                    AppPage.setup => _setupPage(),
+                    AppPage.play => _playPage(),
+                    AppPage.summary => _summaryPage(),
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _headerBar() {
+    return Row(
+      children: [
+        if (_page != AppPage.home)
+          IconButton(
+            onPressed:
+                _page == AppPage.play
+                    ? null
+                    : () {
+                      setState(() {
+                        if (_page == AppPage.setup ||
+                            _page == AppPage.summary) {
+                          _page = AppPage.home;
+                        }
+                      });
+                    },
+            icon: const Icon(Icons.arrow_back),
+          ),
+        Expanded(
+          child: Text(
+            _titleForPage(),
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+        IconButton(
+          onPressed:
+              _page == AppPage.home
+                  ? null
+                  : () => setState(() => _page = AppPage.home),
+          icon: const Icon(Icons.home_rounded),
+        ),
+      ],
     );
   }
 
@@ -382,25 +415,39 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   Widget _statusPanel() {
     return Card(
-      child: ListTile(
-        leading: Icon(_moodIcon[_mayaMood], size: 30),
-        title: Text(_mayaLine),
-        subtitle: Text(
-          'Stars: $_totalStars   Streak: $_currentStreak   Best: $_bestStreak',
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(_moodIcon[_mayaMood], size: 24),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _mayaLine,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              '$_totalStars★  $_currentStreak🔥  $_bestStreak🏆',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _homePage() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _statusPanel(),
-          const SizedBox(height: 12),
-          Card(
+    return Column(
+      key: const ValueKey('home'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _statusPanel(),
+        const SizedBox(height: 10),
+        Expanded(
+          child: Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -411,10 +458,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Choose settings, solve one equation at a time, and complete the round.',
-                  ),
-                  const SizedBox(height: 16),
+                  const Text('One equation at a time with touch controls.'),
+                  const Spacer(),
                   FilledButton.icon(
                     onPressed: () => setState(() => _page = AppPage.setup),
                     icon: const Icon(Icons.play_arrow),
@@ -424,104 +469,105 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _setupPage() {
-    return ListView(
+    return Column(
       key: const ValueKey('setup'),
-      padding: const EdgeInsets.all(16),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _statusPanel(),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Operation',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                SegmentedButton<Operation>(
-                  multiSelectionEnabled: false,
-                  selected: {_operation},
-                  segments:
-                      Operation.values
-                          .map(
-                            (op) => ButtonSegment<Operation>(
-                              value: op,
-                              label: Text(_operationLabel[op]!),
-                            ),
-                          )
-                          .toList(),
-                  onSelectionChanged: (selection) {
-                    setState(() => _operation = selection.first);
-                  },
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Digits',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children:
-                      _digitChoices
-                          .map(
-                            (value) => ChoiceChip(
-                              label: Text('$value'),
-                              selected: _digits == value,
-                              onSelected:
-                                  (_) => setState(() => _digits = value),
-                            ),
-                          )
-                          .toList(),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Questions Per Round',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children:
-                      _roundChoices
-                          .map(
-                            (value) => ChoiceChip(
-                              label: Text('$value'),
-                              selected: _roundLength == value,
-                              onSelected:
-                                  (_) => setState(() => _roundLength = value),
-                            ),
-                          )
-                          .toList(),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => setState(() => _page = AppPage.home),
-                        child: const Text('Cancel'),
+        const SizedBox(height: 10),
+        Expanded(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Operation',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        Operation.values
+                            .map(
+                              (op) => ChoiceChip(
+                                label: Text(_operationLabel[op]!),
+                                selected: _operation == op,
+                                onSelected:
+                                    (_) => setState(() => _operation = op),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Digits',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        _digitChoices
+                            .map(
+                              (value) => ChoiceChip(
+                                label: Text('$value'),
+                                selected: _digits == value,
+                                onSelected:
+                                    (_) => setState(() => _digits = value),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Questions Per Round',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        _roundChoices
+                            .map(
+                              (value) => ChoiceChip(
+                                label: Text('$value'),
+                                selected: _roundLength == value,
+                                onSelected:
+                                    (_) => setState(() => _roundLength = value),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => setState(() => _page = AppPage.home),
+                          child: const Text('Cancel'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: _startRound,
-                        child: const Text('Start Round'),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _startRound,
+                          child: const Text('Start Round'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -532,114 +578,158 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   Widget _playPage() {
     final progress = _questionNumber / _roundLength;
 
-    return ListView(
+    return Column(
       key: const ValueKey('play'),
-      padding: const EdgeInsets.all(16),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _statusPanel(),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Card(
+          margin: EdgeInsets.zero,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Question $_questionNumber of $_roundLength'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 LinearProgressIndicator(value: progress),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const Text('Solve'),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: 160,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _eqLine('${_equation.a}'),
-                      _eqLine(
-                        '${_operationSymbol[_equation.operation]} ${_equation.b}',
-                      ),
-                      const Divider(thickness: 2),
-                      _eqLine(
-                        _revealedSolution
-                            ? '${_equation.result}'
-                            : (_answer.isEmpty ? '?' : _answer),
-                      ),
-                    ],
+        const SizedBox(height: 8),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                flex: 5,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        const Text('Solve'),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 140,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              _eqLine('${_equation.a}'),
+                              _eqLine(
+                                '${_operationSymbol[_equation.operation]} ${_equation.b}',
+                              ),
+                              const Divider(thickness: 2),
+                              _eqLine(
+                                _revealedSolution
+                                    ? '${_equation.result}'
+                                    : (_answer.isEmpty ? '?' : _answer),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.tonal(
+                                onPressed: _hintAction,
+                                child: const Text('Hint'),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: FilledButton.tonal(
+                                onPressed: _checkAnswer,
+                                child: const Text('Check'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.tonal(
+                                onPressed: _showSolution,
+                                child: const Text('Show'),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: _nextEquation,
+                                child: const Text('Next'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          height: 20,
+                          child: Text(
+                            _hint.isNotEmpty
+                                ? _hint
+                                : (_feedback.isNotEmpty ? _feedback : ''),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    FilledButton.tonal(
-                      onPressed: _hintAction,
-                      child: const Text('Hint'),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                flex: 6,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: GridView.count(
+                      crossAxisCount: 3,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1.9,
+                      children: [
+                        ...[
+                          '1',
+                          '2',
+                          '3',
+                          '4',
+                          '5',
+                          '6',
+                          '7',
+                          '8',
+                          '9',
+                          '0',
+                        ].map(
+                          (digit) => FilledButton(
+                            onPressed: () => _tapDigit(digit),
+                            child: Text(
+                              digit,
+                              style: const TextStyle(fontSize: 22),
+                            ),
+                          ),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: _backspace,
+                          child: const Text('Del'),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: _clear,
+                          child: const Text('Clear'),
+                        ),
+                      ],
                     ),
-                    FilledButton.tonal(
-                      onPressed: _checkAnswer,
-                      child: const Text('Check'),
-                    ),
-                    FilledButton.tonal(
-                      onPressed: _showSolution,
-                      child: const Text('Show Solution'),
-                    ),
-                    FilledButton(
-                      onPressed: _nextEquation,
-                      child: const Text('Next Equation'),
-                    ),
-                  ],
-                ),
-                if (_hint.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(_hint),
-                ],
-                if (_feedback.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(_feedback),
-                ],
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 1.6,
-              children: [
-                ...['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map(
-                  (digit) => FilledButton(
-                    onPressed: () => _tapDigit(digit),
-                    child: Text(digit, style: const TextStyle(fontSize: 24)),
                   ),
                 ),
-                FilledButton.tonal(
-                  onPressed: _backspace,
-                  child: const Text('Delete'),
-                ),
-                FilledButton.tonal(
-                  onPressed: _clear,
-                  child: const Text('Clear'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -647,43 +737,45 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   Widget _summaryPage() {
-    return ListView(
+    return Column(
       key: const ValueKey('summary'),
-      padding: const EdgeInsets.all(16),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _statusPanel(),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Round Complete',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 12),
-                Text('Correct answers: ${_roundStats.correct}'),
-                Text('Incorrect checks: ${_roundStats.incorrect}'),
-                Text('Hints used: ${_roundStats.hintsUsed}'),
-                Text('Solutions shown: ${_roundStats.solutionsShown}'),
-                const SizedBox(height: 20),
-                FilledButton(
-                  onPressed: () => setState(() => _page = AppPage.setup),
-                  child: const Text('Change Setup'),
-                ),
-                const SizedBox(height: 8),
-                FilledButton.tonal(
-                  onPressed: _startRound,
-                  child: const Text('Play Again'),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: () => setState(() => _page = AppPage.home),
-                  child: const Text('Home'),
-                ),
-              ],
+        const SizedBox(height: 10),
+        Expanded(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Round Complete',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 10),
+                  Text('Correct answers: ${_roundStats.correct}'),
+                  Text('Incorrect checks: ${_roundStats.incorrect}'),
+                  Text('Hints used: ${_roundStats.hintsUsed}'),
+                  Text('Solutions shown: ${_roundStats.solutionsShown}'),
+                  const Spacer(),
+                  FilledButton(
+                    onPressed: () => setState(() => _page = AppPage.setup),
+                    child: const Text('Change Setup'),
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton.tonal(
+                    onPressed: _startRound,
+                    child: const Text('Play Again'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => setState(() => _page = AppPage.home),
+                    child: const Text('Home'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -695,7 +787,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 36,
+        fontSize: 32,
         height: 1.15,
         fontWeight: FontWeight.w800,
         fontFeatures: [FontFeature.tabularFigures()],
