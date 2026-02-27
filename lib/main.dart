@@ -338,6 +338,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     });
   }
 
+  void _endRoundEarly() {
+    setState(() {
+      _mayaMood = MayaMood.thinking;
+      _mayaLine = 'Round ended.';
+      _page = AppPage.summary;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -582,12 +590,30 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text('Question $_questionNumber of $_roundLength'),
-                const SizedBox(height: 6),
-                LinearProgressIndicator(value: progress),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Question $_questionNumber of $_roundLength'),
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(value: progress),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: _endRoundEarly,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 42),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: const Text('End Game'),
+                ),
               ],
             ),
           ),
@@ -707,18 +733,21 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                           '0',
                         ].map(
                           (digit) => FilledButton(
+                            style: _keypadButtonStyle(),
                             onPressed: () => _tapDigit(digit),
                             child: Text(
                               digit,
-                              style: const TextStyle(fontSize: 22),
+                              style: const TextStyle(fontSize: 26),
                             ),
                           ),
                         ),
                         FilledButton.tonal(
+                          style: _keypadButtonStyle(),
                           onPressed: _backspace,
                           child: const Text('Del'),
                         ),
                         FilledButton.tonal(
+                          style: _keypadButtonStyle(),
                           onPressed: _clear,
                           child: const Text('Clear'),
                         ),
@@ -795,10 +824,19 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   ButtonStyle _compactActionButtonStyle() {
     return FilledButton.styleFrom(
-      minimumSize: const Size(0, 36),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      minimumSize: const Size(0, 44),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
+      visualDensity: VisualDensity.standard,
+    );
+  }
+
+  ButtonStyle _keypadButtonStyle() {
+    return FilledButton.styleFrom(
+      minimumSize: const Size(0, 50),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.standard,
     );
   }
 }
