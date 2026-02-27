@@ -262,14 +262,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (_isRemainderMode) {
         if (_activeField == AnswerField.quotient &&
             _quotientAnswer.length < 8) {
-          _quotientAnswer = '$_quotientAnswer$digit';
+          _quotientAnswer = '$digit$_quotientAnswer';
         } else if (_activeField == AnswerField.remainder &&
             _remainderAnswer.length < 8) {
-          _remainderAnswer = '$_remainderAnswer$digit';
+          _remainderAnswer = '$digit$_remainderAnswer';
         }
       } else {
         if (_answer.length >= 8) return;
-        _answer = '$_answer$digit';
+        _answer = '$digit$_answer';
       }
       _feedback = '';
     });
@@ -281,19 +281,13 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (_isRemainderMode) {
         if (_activeField == AnswerField.quotient &&
             _quotientAnswer.isNotEmpty) {
-          _quotientAnswer = _quotientAnswer.substring(
-            0,
-            _quotientAnswer.length - 1,
-          );
+          _quotientAnswer = _quotientAnswer.substring(1);
         } else if (_activeField == AnswerField.remainder &&
             _remainderAnswer.isNotEmpty) {
-          _remainderAnswer = _remainderAnswer.substring(
-            0,
-            _remainderAnswer.length - 1,
-          );
+          _remainderAnswer = _remainderAnswer.substring(1);
         }
       } else if (_answer.isNotEmpty) {
-        _answer = _answer.substring(0, _answer.length - 1);
+        _answer = _answer.substring(1);
       }
       _feedback = '';
     });
@@ -321,17 +315,20 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       final remainderText = (_equation.a % _equation.b).toString();
       setState(() {
         if (_quotientAnswer.length < quotientText.length) {
-          final idx = min(_quotientAnswer.length, quotientText.length - 1);
+          final idx = max(0, quotientText.length - 1 - _quotientAnswer.length);
           _hint =
               _quotientAnswer.isEmpty
-                  ? 'Quotient starts with: ${quotientText[0]}'
+                  ? 'Quotient ones digit: ${quotientText[quotientText.length - 1]}'
                   : 'Next quotient digit: ${quotientText[idx]}';
           _activeField = AnswerField.quotient;
         } else {
-          final idx = min(_remainderAnswer.length, remainderText.length - 1);
+          final idx = max(
+            0,
+            remainderText.length - 1 - _remainderAnswer.length,
+          );
           _hint =
               _remainderAnswer.isEmpty
-                  ? 'Remainder starts with: ${remainderText[0]}'
+                  ? 'Remainder ones digit: ${remainderText[remainderText.length - 1]}'
                   : 'Next remainder digit: ${remainderText[idx]}';
           _activeField = AnswerField.remainder;
         }
@@ -344,14 +341,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       return;
     }
     final resultText = _equation.result.toString();
-    final idx =
-        _answer.length < resultText.length
-            ? _answer.length
-            : resultText.length - 1;
+    final idx = max(0, resultText.length - 1 - _answer.length);
     setState(() {
       _hint =
           _answer.isEmpty
-              ? 'Start with: ${resultText[0]}'
+              ? 'Start with ones digit: ${resultText[resultText.length - 1]}'
               : 'Next digit: ${resultText[idx]}';
       _roundStats = _roundStats.copyWith(hintsUsed: _roundStats.hintsUsed + 1);
       _mayaMood = MayaMood.thinking;
