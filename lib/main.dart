@@ -346,8 +346,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              _headerBar(),
-              const SizedBox(height: 10),
+              if (_page != AppPage.play) _headerBar(),
+              if (_page != AppPage.play) const SizedBox(height: 10),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
@@ -393,13 +393,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
         ),
-        IconButton(
-          onPressed:
-              _page == AppPage.home
-                  ? null
-                  : () => setState(() => _page = AppPage.home),
-          icon: const Icon(Icons.home_rounded),
-        ),
+        const SizedBox(width: 48),
       ],
     );
   }
@@ -607,13 +601,13 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                 child: Card(
                   margin: EdgeInsets.zero,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
                         const Text('Solve'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         SizedBox(
-                          width: 140,
+                          width: 132,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
@@ -630,11 +624,12 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Expanded(
                               child: FilledButton.tonal(
+                                style: _compactActionButtonStyle(),
                                 onPressed: _hintAction,
                                 child: const Text('Hint'),
                               ),
@@ -642,17 +637,19 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: FilledButton.tonal(
+                                style: _compactActionButtonStyle(),
                                 onPressed: _checkAnswer,
                                 child: const Text('Check'),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Expanded(
                               child: FilledButton.tonal(
+                                style: _compactActionButtonStyle(),
                                 onPressed: _showSolution,
                                 child: const Text('Show'),
                               ),
@@ -660,15 +657,16 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: FilledButton(
+                                style: _compactActionButtonStyle(),
                                 onPressed: _nextEquation,
                                 child: const Text('Next'),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         SizedBox(
-                          height: 20,
+                          height: 16,
                           child: Text(
                             _hint.isNotEmpty
                                 ? _hint
@@ -787,11 +785,20 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 32,
+        fontSize: 30,
         height: 1.15,
         fontWeight: FontWeight.w800,
         fontFeatures: [FontFeature.tabularFigures()],
       ),
+    );
+  }
+
+  ButtonStyle _compactActionButtonStyle() {
+    return FilledButton.styleFrom(
+      minimumSize: const Size(0, 36),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     );
   }
 }
