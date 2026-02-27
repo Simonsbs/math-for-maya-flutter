@@ -1123,11 +1123,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     final hasVisibleBorrow = borrowMarkedValues.any((d) => d.isNotEmpty);
     final carryDisplayDigits =
         _revealedSolution ? carries : _manualCarryRow(colCount);
-    final carryMarkedValues = _prefixedMarkedValues(
-      topDigits,
-      carryDisplayDigits,
-    );
-    final hasVisibleCarry = carryMarkedValues.any((d) => d.isNotEmpty);
+    final hasVisibleCarry = carryDisplayDigits.any((d) => d.isNotEmpty);
     final showCarryRow =
         _equation.operation == Operation.addition && hasVisibleCarry;
     final showBorrowRow =
@@ -1142,7 +1138,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           if (showCarryRow)
             _equationRow(
               leading: '',
-              digits: carryMarkedValues,
+              digits: carryDisplayDigits,
               fontSize: 13,
               color: _revealedSolution ? Colors.deepOrange : Colors.indigo,
               weight: FontWeight.w900,
