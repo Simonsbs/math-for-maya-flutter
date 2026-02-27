@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -117,6 +118,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   bool _answeredCorrectly = false;
   String _carryMarks = '';
   String _borrowMarks = '';
+  late final ConfettiController _confettiController;
 
   RoundStats _roundStats = RoundStats.empty;
 
@@ -156,6 +158,15 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void initState() {
     super.initState();
     _equation = _generateEquation(_operation, _digits, _useRemainders);
+    _confettiController = ConfettiController(
+      duration: const Duration(milliseconds: 900),
+    );
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
   }
 
   int _minForDigits(int digits) =>
@@ -402,6 +413,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           _mayaMood = MayaMood.happy;
           _mayaLine = 'Good work.';
           if (!_answeredCorrectly) {
+            _playCorrectEffects();
             _answeredCorrectly = true;
             _totalStars += 1;
             _currentStreak += 1;
@@ -452,6 +464,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _mayaLine = 'Good work.';
 
         if (!_answeredCorrectly) {
+          _playCorrectEffects();
           _answeredCorrectly = true;
           _totalStars += 1;
           _currentStreak += 1;
@@ -473,6 +486,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         );
       }
     });
+  }
+
+  void _playCorrectEffects() {
+    _confettiController.play();
+    SystemSound.play(SystemSoundType.alert);
   }
 
   void _showSolution() {
@@ -544,27 +562,53 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              if (_page != AppPage.play) _headerBar(),
-              if (_page != AppPage.play) const SizedBox(height: 10),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: switch (_page) {
-                    AppPage.home => _homePage(),
-                    AppPage.setup => _setupPage(),
-                    AppPage.play => _playPage(),
-                    AppPage.summary => _summaryPage(),
-                  },
-                ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  if (_page != AppPage.play) _headerBar(),
+                  if (_page != AppPage.play) const SizedBox(height: 10),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: switch (_page) {
+                        AppPage.home => _homePage(),
+                        AppPage.setup => _setupPage(),
+                        AppPage.play => _playPage(),
+                        AppPage.summary => _summaryPage(),
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          IgnorePointer(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                numberOfParticles: 28,
+                emissionFrequency: 0.03,
+                gravity: 0.35,
+                minBlastForce: 10,
+                maxBlastForce: 28,
+                colors: const [
+                  Color(0xFF2A7FFF),
+                  Color(0xFF00C853),
+                  Color(0xFFFFC107),
+                  Color(0xFFFF5252),
+                  Color(0xFF9C27B0),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
