@@ -1114,6 +1114,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _equation.operation == Operation.addition
             ? _additionCarryRow(_equation.a, _equation.b, colCount)
             : List<String>.filled(colCount, '');
+    final topDigits = _alignDigits(top, colCount);
     final borrowDisplayDigits = _manualBorrowRow(colCount);
     final hasVisibleBorrow = borrowDisplayDigits.any((d) => d.isNotEmpty);
     final carryDisplayDigits =
@@ -1144,7 +1145,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               color: Colors.deepPurple,
               weight: FontWeight.w900,
             ),
-          _equationRow(leading: '', digits: _alignDigits(top, colCount)),
+          if (_equation.operation == Operation.subtraction && hasVisibleBorrow)
+            _subtractionTopRowWithBorrow(topDigits, colCount)
+          else
+            _equationRow(leading: '', digits: topDigits),
           _equationRow(
             leading: _operationSymbol[_equation.operation]!,
             digits: _alignDigits(bottom, colCount),
@@ -1203,6 +1207,72 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       row[index] = _borrowMarks[i];
     }
     return row;
+  }
+
+  Map<int, int> _borrowDonorCounts(int colCount) {
+    final counts = <int, int>{};
+    for (int i = 0; i < _borrowMarks.length; i++) {
+      final donorIndex = colCount - 2 - i;
+      if (donorIndex < 0 || donorIndex >= colCount) break;
+      counts[donorIndex] = (counts[donorIndex] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  Widget _subtractionTopRowWithBorrow(List<String> topDigits, int colCount) {
+    final donorCounts = _borrowDonorCounts(colCount);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        _digitCell('', fontSize: 30, weight: FontWeight.w800),
+        for (int i = 0; i < topDigits.length; i++)
+          _borrowTopDigitCell(topDigits[i], donorCounts[i] ?? 0),
+      ],
+    );
+  }
+
+  Widget _borrowTopDigitCell(String digit, int borrowCount) {
+    if (digit.isEmpty || borrowCount <= 0) {
+      return _digitCell(digit, fontSize: 30, weight: FontWeight.w800);
+    }
+
+    final original = int.tryParse(digit) ?? 0;
+    final updated = max(0, original - borrowCount);
+    return SizedBox(
+      width: 22,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Text(
+            '$original',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 30,
+              height: 1.05,
+              color: Colors.black54,
+              decoration: TextDecoration.lineThrough,
+              decorationThickness: 2,
+              fontWeight: FontWeight.w800,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          Positioned(
+            top: -4,
+            right: 0,
+            child: Text(
+              '$updated',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.w900,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _equationRow({
