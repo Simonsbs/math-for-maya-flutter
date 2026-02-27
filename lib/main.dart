@@ -614,33 +614,66 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   Widget _headerBar() {
+    final showBack = _page != AppPage.home;
     return Row(
       children: [
-        if (_page != AppPage.home)
-          IconButton(
-            onPressed:
-                _page == AppPage.play
-                    ? null
-                    : () {
-                      setState(() {
-                        if (_page == AppPage.setup ||
-                            _page == AppPage.summary) {
-                          _page = AppPage.home;
-                        }
-                      });
-                    },
-            icon: const Icon(Icons.arrow_back),
-          ),
+        SizedBox(
+          width: 48,
+          child:
+              showBack
+                  ? IconButton(
+                    onPressed:
+                        _page == AppPage.play
+                            ? null
+                            : () {
+                              setState(() {
+                                if (_page == AppPage.setup ||
+                                    _page == AppPage.summary) {
+                                  _page = AppPage.home;
+                                }
+                              });
+                            },
+                    icon: const Icon(Icons.arrow_back),
+                  )
+                  : null,
+        ),
         Expanded(
-          child: Text(
-            _titleForPage(),
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
+          child:
+              _page == AppPage.home
+                  ? _homeBrandTitle()
+                  : Text(
+                    _titleForPage(),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                  ),
         ),
         const SizedBox(width: 48),
+      ],
+    );
+  }
+
+  Widget _homeBrandTitle() {
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+      letterSpacing: 0.2,
+      color: const Color(0xFF1F2A44),
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE7F0FF),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.auto_awesome, size: 18, color: Color(0xFF2A7FFF)),
+        ),
+        const SizedBox(width: 8),
+        Text('Math For Maya', style: titleStyle),
       ],
     );
   }
