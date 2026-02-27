@@ -490,7 +490,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _playCorrectEffects() {
-    _confettiController.play();
+    // Reset animation state so confetti reliably replays every time.
+    _confettiController
+      ..stop()
+      ..play();
     SystemSound.play(SystemSoundType.alert);
   }
 
