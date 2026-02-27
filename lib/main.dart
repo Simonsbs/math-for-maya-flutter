@@ -126,7 +126,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   String _mayaLine = 'Let\'s begin.';
 
   static const List<int> _digitChoices = [1, 2, 3, 4];
-  static const List<int> _roundChoices = [5, 10, 15];
+  static const List<int> _roundChoices = [5, 10, 15, -1];
   static const List<Operation> _enabledOperations = [
     Operation.addition,
     Operation.subtraction,
@@ -181,6 +181,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   bool get _isRemainderMode =>
       _equation.operation == Operation.division && _useRemainders;
+  bool get _isEndlessRound => _roundLength == -1;
   bool get _canUseCarryInput =>
       _equation.operation == Operation.addition && !_isRemainderMode;
   int get _currentColumnCount {
@@ -274,7 +275,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   void _nextEquation() {
     setState(() {
-      if (_questionNumber >= _roundLength) {
+      if (!_isEndlessRound && _questionNumber >= _roundLength) {
         _page = AppPage.summary;
         _mayaMood = MayaMood.celebrate;
         _mayaLine = 'Round complete.';
@@ -829,10 +830,12 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             .map(
                               (op) => _setupOptionButton(
                                 label: _operationLabel[op]!,
-                                icon:
-                                    op == Operation.addition
-                                        ? Icons.add_rounded
-                                        : Icons.remove_rounded,
+                                leading: Icon(
+                                  op == Operation.addition
+                                      ? Icons.add_rounded
+                                      : Icons.remove_rounded,
+                                  size: 19,
+                                ),
                                 selected: _operation == op,
                                 onTap: () => setState(() => _operation = op),
                                 minWidth: 156,
@@ -845,7 +848,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                     'Digits',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Wrap(
                     alignment: WrapAlignment.center,
                     spacing: 10,
@@ -855,20 +858,25 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                             .map(
                               (value) => _setupOptionButton(
                                 label: '$value digits',
-                                icon: Icons.pin_outlined,
+                                leading: _digitCountIcon(
+                                  value,
+                                  _digits == value
+                                      ? Colors.white
+                                      : const Color(0xFF27324A),
+                                ),
                                 selected: _digits == value,
                                 onTap: () => setState(() => _digits = value),
-                                minWidth: 124,
+                                minWidth: 120,
                               ),
                             )
                             .toList(),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   const Text(
                     'Questions Per Round',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Wrap(
                     alignment: WrapAlignment.center,
                     spacing: 10,
@@ -877,12 +885,20 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                         _roundChoices
                             .map(
                               (value) => _setupOptionButton(
-                                label: '$value questions',
-                                icon: Icons.checklist_rounded,
+                                label:
+                                    value == -1
+                                        ? 'Endless'
+                                        : '$value questions',
+                                leading: Icon(
+                                  value == -1
+                                      ? Icons.all_inclusive_rounded
+                                      : Icons.checklist_rounded,
+                                  size: 19,
+                                ),
                                 selected: _roundLength == value,
                                 onTap:
                                     () => setState(() => _roundLength = value),
-                                minWidth: 150,
+                                minWidth: 136,
                               ),
                             )
                             .toList(),
@@ -891,16 +907,40 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: OutlinedButton.icon(
                           onPressed: () => setState(() => _page = AppPage.home),
-                          child: const Text('Cancel'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 56),
+                            side: const BorderSide(
+                              color: Color(0xFFADB9D6),
+                              width: 1.6,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                          label: const Text(
+                            'Cancel',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: FilledButton(
+                        child: FilledButton.icon(
                           onPressed: _startRound,
-                          child: const Text('Start Round'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 56),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          icon: const Icon(Icons.rocket_launch_rounded, size: 20),
+                          label: const Text(
+                            'Start Round',
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                          ),
                         ),
                       ),
                     ],
@@ -916,7 +956,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   Widget _setupOptionButton({
     required String label,
-    required IconData icon,
+    required Widget leading,
     required bool selected,
     required VoidCallback onTap,
     required double minWidth,
@@ -945,7 +985,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 19, color: fg),
+              IconTheme(data: IconThemeData(color: fg, size: 19), child: leading),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -962,8 +1002,26 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     );
   }
 
+  Widget _digitCountIcon(int count, Color color) {
+    final sample = List<String>.filled(count, '8').join();
+    return SizedBox(
+      width: 26,
+      child: Text(
+        sample,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w900,
+          fontSize: count >= 4 ? 10 : 11,
+          letterSpacing: 0.2,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
+
   Widget _playPage() {
-    final progress = _questionNumber / _roundLength;
+    final progress = _isEndlessRound ? null : (_questionNumber / _roundLength);
 
     return Column(
       key: const ValueKey('play'),
@@ -981,7 +1039,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Question $_questionNumber of $_roundLength'),
+                      Text(
+                        _isEndlessRound
+                            ? 'Question $_questionNumber (Endless)'
+                            : 'Question $_questionNumber of $_roundLength',
+                      ),
                       const SizedBox(height: 6),
                       LinearProgressIndicator(value: progress),
                     ],
