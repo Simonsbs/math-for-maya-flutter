@@ -1128,7 +1128,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _equation.operation == Operation.addition && hasVisibleCarry;
     final showBorrowRow =
         _equation.operation == Operation.subtraction && hasVisibleBorrow;
-    final carryCrossedColumns = _markedColumns(carryDisplayDigits);
     final borrowCrossedColumns = _markedColumns(borrowDisplayDigits);
 
     return SizedBox(
@@ -1157,8 +1156,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               colCount,
               crossedColumns: borrowCrossedColumns,
             )
-          else if (_equation.operation == Operation.addition && hasVisibleCarry)
-            _topRowWithCrossOut(topDigits, carryCrossedColumns)
           else
             _equationRow(leading: '', digits: topDigits),
           _equationRow(
@@ -1247,22 +1244,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (marks[i].isNotEmpty) cols.add(i);
     }
     return cols;
-  }
-
-  Widget _topRowWithCrossOut(List<String> topDigits, Set<int> crossedColumns) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _digitCell('', fontSize: 30, weight: FontWeight.w800),
-        for (int i = 0; i < topDigits.length; i++)
-          _digitCell(
-            topDigits[i],
-            fontSize: 30,
-            weight: FontWeight.w800,
-            crossOut: crossedColumns.contains(i),
-          ),
-      ],
-    );
   }
 
   Widget _subtractionTopRowWithBorrow(
