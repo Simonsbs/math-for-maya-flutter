@@ -1238,40 +1238,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
     final original = int.tryParse(digit) ?? 0;
     final updated = max(0, original - borrowCount);
-    return SizedBox(
-      width: 22,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Text(
-            '$original',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 30,
-              height: 1.05,
-              color: Colors.black54,
-              decoration: TextDecoration.lineThrough,
-              decorationThickness: 2,
-              fontWeight: FontWeight.w800,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-          Positioned(
-            top: -4,
-            right: 0,
-            child: Text(
-              '$updated',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.deepPurple,
-                fontWeight: FontWeight.w900,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
-        ],
-      ),
+    return _digitCell(
+      '$updated',
+      fontSize: 30,
+      color: Colors.deepPurple,
+      weight: FontWeight.w900,
     );
   }
 
