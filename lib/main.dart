@@ -20,6 +20,8 @@ enum MayaMood { idle, happy, thinking, oops, celebrate }
 
 enum AnswerField { quotient, remainder }
 
+enum FeedbackTone { idle, hint, success, mistake, info }
+
 class Equation {
   const Equation({
     required this.a,
@@ -115,6 +117,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   AnswerField _activeField = AnswerField.quotient;
   String _feedback = '';
   String _hint = '';
+  FeedbackTone _feedbackTone = FeedbackTone.idle;
+  bool _mistakePulse = false;
   bool _revealedSolution = false;
   bool _answeredCorrectly = false;
   String _carryMarks = '';
@@ -264,10 +268,12 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     _activeField = AnswerField.quotient;
     _feedback = '';
     _hint = '';
+    _feedbackTone = FeedbackTone.idle;
     _revealedSolution = false;
     _answeredCorrectly = false;
     _carryMarks = '';
     _borrowMarks = '';
+    _mistakePulse = false;
   }
 
   void _startRound() {
@@ -313,6 +319,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _answer = '$digit$_answer';
       }
       _feedback = '';
+      _feedbackTone = FeedbackTone.idle;
     });
   }
 
@@ -331,6 +338,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _answer = _answer.substring(1);
       }
       _feedback = '';
+      _feedbackTone = FeedbackTone.idle;
     });
   }
 
@@ -347,6 +355,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _answer = '';
       }
       _feedback = '';
+      _feedbackTone = FeedbackTone.idle;
     });
   }
 
@@ -376,6 +385,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _roundStats = _roundStats.copyWith(
           hintsUsed: _roundStats.hintsUsed + 1,
         );
+        _feedback = '';
+        _feedbackTone = FeedbackTone.hint;
         _mayaMood = MayaMood.thinking;
         _mayaLine = 'Hint added.';
       });
@@ -389,6 +400,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
               ? 'Start with ones digit: ${resultText[resultText.length - 1]}'
               : 'Next digit: ${resultText[idx]}';
       _roundStats = _roundStats.copyWith(hintsUsed: _roundStats.hintsUsed + 1);
+      _feedback = '';
+      _feedbackTone = FeedbackTone.hint;
       _mayaMood = MayaMood.thinking;
       _mayaLine = 'Hint added.';
     });
@@ -399,6 +412,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (_quotientAnswer.isEmpty || _remainderAnswer.isEmpty) {
         setState(() {
           _feedback = 'Enter quotient and remainder.';
+          _hint = '';
+          _feedbackTone = FeedbackTone.info;
           _mayaMood = MayaMood.thinking;
           _mayaLine = 'Fill both fields.';
         });
@@ -409,6 +424,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (parsedQuotient == null || parsedRemainder == null) {
         setState(() {
           _feedback = 'Numbers only.';
+          _hint = '';
+          _feedbackTone = FeedbackTone.info;
           _mayaMood = MayaMood.thinking;
           _mayaLine = 'Input should be numeric.';
         });
@@ -419,7 +436,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       if (parsedQuotient == expectedQuotient &&
           parsedRemainder == expectedRemainder) {
         setState(() {
-          _feedback = 'Correct.';
+          _feedback = 'Great job. That is correct!';
+          _hint = '';
+          _feedbackTone = FeedbackTone.success;
           _mayaMood = MayaMood.happy;
           _mayaLine = 'Good work.';
           if (!_answeredCorrectly) {
@@ -436,7 +455,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         return;
       }
       setState(() {
-        _feedback = 'Incorrect. Try again.';
+        _feedback = 'Not quite yet. Try again, you can do it.';
+        _hint = '';
+        _feedbackTone = FeedbackTone.mistake;
         _mayaMood = MayaMood.oops;
         _mayaLine = 'Check and retry.';
         _currentStreak = 0;
@@ -446,11 +467,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           );
         }
       });
+      _triggerMistakePulse();
       return;
     }
     if (_answer.isEmpty) {
       setState(() {
         _feedback = 'Enter an answer first.';
+        _hint = '';
+        _feedbackTone = FeedbackTone.info;
         _mayaMood = MayaMood.thinking;
         _mayaLine = 'Use the keypad.';
       });
@@ -461,6 +485,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     if (parsed == null) {
       setState(() {
         _feedback = 'Numbers only.';
+        _hint = '';
+        _feedbackTone = FeedbackTone.info;
         _mayaMood = MayaMood.thinking;
         _mayaLine = 'Input should be numeric.';
       });
@@ -469,7 +495,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
     if (parsed == _equation.result) {
       setState(() {
-        _feedback = 'Correct.';
+        _feedback = 'Great job. That is correct!';
+        _hint = '';
+        _feedbackTone = FeedbackTone.success;
         _mayaMood = MayaMood.happy;
         _mayaLine = 'Good work.';
 
@@ -486,7 +514,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     }
 
     setState(() {
-      _feedback = 'Incorrect. Try again.';
+      _feedback = 'Not quite yet. Try again, you can do it.';
+      _hint = '';
+      _feedbackTone = FeedbackTone.mistake;
       _mayaMood = MayaMood.oops;
       _mayaLine = 'Check and retry.';
       _currentStreak = 0;
@@ -496,6 +526,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         );
       }
     });
+    _triggerMistakePulse();
   }
 
   void _playCorrectEffects() {
@@ -511,6 +542,18 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     SystemSound.play(SystemSoundType.alert);
   }
 
+  void _triggerMistakePulse() {
+    setState(() {
+      _mistakePulse = true;
+    });
+    Future<void>.delayed(const Duration(milliseconds: 420), () {
+      if (!mounted) return;
+      setState(() {
+        _mistakePulse = false;
+      });
+    });
+  }
+
   void _showSolution() {
     if (_revealedSolution) return;
     setState(() {
@@ -522,6 +565,8 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       } else {
         _feedback = 'Solution: ${_equation.result}';
       }
+      _hint = '';
+      _feedbackTone = FeedbackTone.info;
       _roundStats = _roundStats.copyWith(
         solutionsShown: _roundStats.solutionsShown + 1,
       );
@@ -538,12 +583,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _mayaMood = MayaMood.thinking;
         _mayaLine = 'No next column for carry yet.';
         _feedback = '';
+        _feedbackTone = FeedbackTone.idle;
         return;
       }
       if (_carryMarks.length < 8) {
         _carryMarks = '$_carryMarks${1}';
       }
       _feedback = '';
+      _feedbackTone = FeedbackTone.idle;
       _mayaMood = MayaMood.thinking;
       _mayaLine = 'Carry 1 added.';
     });
@@ -558,12 +605,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
         _mayaMood = MayaMood.thinking;
         _mayaLine = 'No next column to borrow from yet.';
         _feedback = '';
+        _feedbackTone = FeedbackTone.idle;
         return;
       }
       if (_borrowMarks.length < 8) {
         _borrowMarks = '$_borrowMarks${1}';
       }
       _feedback = '';
+      _feedbackTone = FeedbackTone.idle;
       _mayaMood = MayaMood.thinking;
       _mayaLine = 'Borrow 1 added.';
     });
@@ -1124,192 +1173,186 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             children: [
               Expanded(
                 flex: 6,
-                child: Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(
-                              Icons.calculate_outlined,
-                              size: 18,
-                              color: Color(0xFF3D4E76),
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Solve',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          _mistakePulse
+                              ? const Color(0xFFFFB4B4)
+                              : Colors.transparent,
+                      width: _mistakePulse ? 2.4 : 0,
+                    ),
+                    boxShadow:
+                        _mistakePulse
+                            ? [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFFF8D8D,
+                                ).withValues(alpha: 0.22),
+                                blurRadius: 16,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                            : null,
+                  ),
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(
+                                Icons.calculate_outlined,
+                                size: 18,
                                 color: Color(0xFF3D4E76),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Expanded(
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: _verticalEquationWidget(),
-                            ),
-                          ),
-                        ),
-                        if (_canUseCarryInput && !_revealedSolution)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: FilledButton.tonalIcon(
-                              style: _compactActionButtonStyle(
-                                isPrimary: false,
+                              SizedBox(width: 6),
+                              Text(
+                                'Solve',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF3D4E76),
+                                ),
                               ),
-                              onPressed: _carryTheOne,
-                              icon: const Icon(
-                                Icons.keyboard_double_arrow_left,
-                              ),
-                              label: const Text('Carry the 1'),
-                            ),
+                            ],
                           ),
-                        if (_equation.operation == Operation.subtraction &&
-                            !_revealedSolution)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: FilledButton.tonalIcon(
-                              style: _compactActionButtonStyle(
-                                isPrimary: false,
-                              ),
-                              onPressed: _borrowOne,
-                              icon: const Icon(Icons.redo_rounded),
-                              label: const Text('Borrow 1'),
-                            ),
-                          ),
-                        if (_isRemainderMode) ...[
                           const SizedBox(height: 2),
+                          Expanded(
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: _verticalEquationWidget(),
+                              ),
+                            ),
+                          ),
+                          if (_canUseCarryInput && !_revealedSolution)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: FilledButton.tonalIcon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: false,
+                                ),
+                                onPressed: _carryTheOne,
+                                icon: const Icon(
+                                  Icons.keyboard_double_arrow_left,
+                                ),
+                                label: const Text('Carry the 1'),
+                              ),
+                            ),
+                          if (_equation.operation == Operation.subtraction &&
+                              !_revealedSolution)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: FilledButton.tonalIcon(
+                                style: _compactActionButtonStyle(
+                                  isPrimary: false,
+                                ),
+                                onPressed: _borrowOne,
+                                icon: const Icon(Icons.redo_rounded),
+                                label: const Text('Borrow 1'),
+                              ),
+                            ),
+                          if (_isRemainderMode) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ChoiceChip(
+                                    label: Text(
+                                      'Q ${_quotientAnswer.isEmpty ? "?" : _quotientAnswer}',
+                                    ),
+                                    selected:
+                                        _activeField == AnswerField.quotient,
+                                    onSelected:
+                                        (_) => setState(
+                                          () =>
+                                              _activeField =
+                                                  AnswerField.quotient,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: ChoiceChip(
+                                    label: Text(
+                                      'R ${_remainderAnswer.isEmpty ? "?" : _remainderAnswer}',
+                                    ),
+                                    selected:
+                                        _activeField == AnswerField.remainder,
+                                    onSelected:
+                                        (_) => setState(
+                                          () =>
+                                              _activeField =
+                                                  AnswerField.remainder,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                          ],
                           Row(
                             children: [
                               Expanded(
-                                child: ChoiceChip(
-                                  label: Text(
-                                    'Q ${_quotientAnswer.isEmpty ? "?" : _quotientAnswer}',
+                                child: FilledButton.tonalIcon(
+                                  style: _compactActionButtonStyle(
+                                    isPrimary: false,
                                   ),
-                                  selected:
-                                      _activeField == AnswerField.quotient,
-                                  onSelected:
-                                      (_) => setState(
-                                        () =>
-                                            _activeField = AnswerField.quotient,
-                                      ),
+                                  onPressed: _hintAction,
+                                  icon: const Icon(
+                                    Icons.lightbulb_outline_rounded,
+                                  ),
+                                  label: const Text('Hint'),
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
-                                child: ChoiceChip(
-                                  label: Text(
-                                    'R ${_remainderAnswer.isEmpty ? "?" : _remainderAnswer}',
+                                child: FilledButton.tonalIcon(
+                                  style: _compactActionButtonStyle(
+                                    isPrimary: false,
                                   ),
-                                  selected:
-                                      _activeField == AnswerField.remainder,
-                                  onSelected:
-                                      (_) => setState(
-                                        () =>
-                                            _activeField =
-                                                AnswerField.remainder,
-                                      ),
+                                  onPressed: _checkAnswer,
+                                  icon: const Icon(Icons.task_alt_rounded),
+                                  label: const Text('Check'),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: FilledButton.tonalIcon(
+                                  style: _compactActionButtonStyle(
+                                    isPrimary: false,
+                                  ),
+                                  onPressed: _showSolution,
+                                  icon: const Icon(Icons.visibility_outlined),
+                                  label: const Text('Show'),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: FilledButton.icon(
+                                  style: _compactActionButtonStyle(
+                                    isPrimary: true,
+                                  ),
+                                  onPressed: _nextEquation,
+                                  icon: const Icon(Icons.arrow_forward_rounded),
+                                  label: const Text('Next'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          _feedbackBanner(),
                         ],
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton.tonalIcon(
-                                style: _compactActionButtonStyle(
-                                  isPrimary: false,
-                                ),
-                                onPressed: _hintAction,
-                                icon: const Icon(
-                                  Icons.lightbulb_outline_rounded,
-                                ),
-                                label: const Text('Hint'),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: FilledButton.tonalIcon(
-                                style: _compactActionButtonStyle(
-                                  isPrimary: false,
-                                ),
-                                onPressed: _checkAnswer,
-                                icon: const Icon(Icons.task_alt_rounded),
-                                label: const Text('Check'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton.tonalIcon(
-                                style: _compactActionButtonStyle(
-                                  isPrimary: false,
-                                ),
-                                onPressed: _showSolution,
-                                icon: const Icon(Icons.visibility_outlined),
-                                label: const Text('Show'),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: FilledButton.icon(
-                                style: _compactActionButtonStyle(
-                                  isPrimary: true,
-                                ),
-                                onPressed: _nextEquation,
-                                icon: const Icon(Icons.arrow_forward_rounded),
-                                label: const Text('Next'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 160),
-                          width: double.infinity,
-                          height: 26,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          alignment: Alignment.centerLeft,
-                          decoration: BoxDecoration(
-                            color:
-                                (_hint.isNotEmpty || _feedback.isNotEmpty)
-                                    ? const Color(0xFFF0F4FF)
-                                    : const Color(0xFFF7F9FF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color:
-                                  (_hint.isNotEmpty || _feedback.isNotEmpty)
-                                      ? const Color(0xFFD3DEFA)
-                                      : const Color(0xFFE7ECFA),
-                            ),
-                          ),
-                          child: Text(
-                            _hint.isNotEmpty
-                                ? _hint
-                                : (_feedback.isNotEmpty
-                                    ? _feedback
-                                    : 'Enter your answer below'),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF3E4A67),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -1373,6 +1416,78 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _feedbackBanner() {
+    final hasHint = _hint.isNotEmpty;
+    final message =
+        hasHint
+            ? _hint
+            : (_feedback.isNotEmpty ? _feedback : 'Enter your answer below');
+    final tone =
+        hasHint
+            ? FeedbackTone.hint
+            : (_feedback.isNotEmpty ? _feedbackTone : FeedbackTone.idle);
+
+    final bg = switch (tone) {
+      FeedbackTone.success => const Color(0xFFEAF9EE),
+      FeedbackTone.mistake => const Color(0xFFFFF1D9),
+      FeedbackTone.hint => const Color(0xFFEFF3FF),
+      FeedbackTone.info => const Color(0xFFF4F6FC),
+      FeedbackTone.idle => const Color(0xFFF7F9FF),
+    };
+    final border = switch (tone) {
+      FeedbackTone.success => const Color(0xFFB7E4C2),
+      FeedbackTone.mistake => const Color(0xFFFFD6A0),
+      FeedbackTone.hint => const Color(0xFFD3DEFA),
+      FeedbackTone.info => const Color(0xFFDDE4F6),
+      FeedbackTone.idle => const Color(0xFFE7ECFA),
+    };
+    final fg = switch (tone) {
+      FeedbackTone.success => const Color(0xFF1F7A39),
+      FeedbackTone.mistake => const Color(0xFF9E6A00),
+      FeedbackTone.hint => const Color(0xFF3E4A67),
+      FeedbackTone.info => const Color(0xFF47546F),
+      FeedbackTone.idle => const Color(0xFF3E4A67),
+    };
+    final icon = switch (tone) {
+      FeedbackTone.success => Icons.verified_rounded,
+      FeedbackTone.mistake => Icons.refresh_rounded,
+      FeedbackTone.hint => Icons.lightbulb_outline_rounded,
+      FeedbackTone.info => Icons.info_outline_rounded,
+      FeedbackTone.idle => Icons.edit_rounded,
+    };
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: double.infinity,
+      height: 30,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: fg),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: fg,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
