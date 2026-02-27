@@ -16,6 +16,8 @@ enum AppPage { home, setup, play, summary }
 
 enum MayaMood { idle, happy, thinking, oops, celebrate }
 
+enum AnswerField { quotient, remainder }
+
 class Equation {
   const Equation({
     required this.a,
@@ -96,6 +98,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   Operation _operation = Operation.addition;
   int _digits = 1;
   int _roundLength = 10;
+  bool _useRemainders = false;
 
   late Equation _equation;
   int _questionNumber = 1;
@@ -105,6 +108,9 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   int _bestStreak = 0;
 
   String _answer = '';
+  String _quotientAnswer = '';
+  String _remainderAnswer = '';
+  AnswerField _activeField = AnswerField.quotient;
   String _feedback = '';
   String _hint = '';
   bool _revealedSolution = false;
@@ -143,7 +149,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   @override
   void initState() {
     super.initState();
-    _equation = _generateEquation(_operation, _digits);
+    _equation = _generateEquation(_operation, _digits, _useRemainders);
   }
 
   int _minForDigits(int digits) =>
@@ -156,7 +162,14 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     return min + _random.nextInt(max - min + 1);
   }
 
-  Equation _generateEquation(Operation operation, int digits) {
+  bool get _isRemainderMode =>
+      _equation.operation == Operation.division && _useRemainders;
+
+  Equation _generateEquation(
+    Operation operation,
+    int digits,
+    bool useRemainders,
+  ) {
     final minValue = _minForDigits(digits);
     final maxValue = _maxForDigits(digits);
 
@@ -187,6 +200,15 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
     final divisor = _randomInt(max(minValue, 1), max(maxValue, 1));
     final quotient = _randomInt(max(minValue, 1), max(maxValue, 1));
+    if (useRemainders) {
+      final remainder = _randomInt(1, max(divisor - 1, 1));
+      return Equation(
+        a: divisor * quotient + remainder,
+        b: divisor,
+        operation: operation,
+        result: quotient,
+      );
+    }
     return Equation(
       a: divisor * quotient,
       b: divisor,
@@ -196,8 +218,11 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _resetQuestion() {
-    _equation = _generateEquation(_operation, _digits);
+    _equation = _generateEquation(_operation, _digits, _useRemainders);
     _answer = '';
+    _quotientAnswer = '';
+    _remainderAnswer = '';
+    _activeField = AnswerField.quotient;
     _feedback = '';
     _hint = '';
     _revealedSolution = false;
@@ -232,9 +257,20 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _tapDigit(String digit) {
-    if (_revealedSolution || _answer.length >= 8) return;
+    if (_revealedSolution) return;
     setState(() {
-      _answer = '$_answer$digit';
+      if (_isRemainderMode) {
+        if (_activeField == AnswerField.quotient &&
+            _quotientAnswer.length < 8) {
+          _quotientAnswer = '$_quotientAnswer$digit';
+        } else if (_activeField == AnswerField.remainder &&
+            _remainderAnswer.length < 8) {
+          _remainderAnswer = '$_remainderAnswer$digit';
+        }
+      } else {
+        if (_answer.length >= 8) return;
+        _answer = '$_answer$digit';
+      }
       _feedback = '';
     });
   }
@@ -242,7 +278,21 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _backspace() {
     if (_revealedSolution) return;
     setState(() {
-      if (_answer.isNotEmpty) {
+      if (_isRemainderMode) {
+        if (_activeField == AnswerField.quotient &&
+            _quotientAnswer.isNotEmpty) {
+          _quotientAnswer = _quotientAnswer.substring(
+            0,
+            _quotientAnswer.length - 1,
+          );
+        } else if (_activeField == AnswerField.remainder &&
+            _remainderAnswer.isNotEmpty) {
+          _remainderAnswer = _remainderAnswer.substring(
+            0,
+            _remainderAnswer.length - 1,
+          );
+        }
+      } else if (_answer.isNotEmpty) {
         _answer = _answer.substring(0, _answer.length - 1);
       }
       _feedback = '';
@@ -252,12 +302,47 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _clear() {
     if (_revealedSolution) return;
     setState(() {
-      _answer = '';
+      if (_isRemainderMode) {
+        if (_activeField == AnswerField.quotient) {
+          _quotientAnswer = '';
+        } else {
+          _remainderAnswer = '';
+        }
+      } else {
+        _answer = '';
+      }
       _feedback = '';
     });
   }
 
   void _hintAction() {
+    if (_isRemainderMode) {
+      final quotientText = (_equation.a ~/ _equation.b).toString();
+      final remainderText = (_equation.a % _equation.b).toString();
+      setState(() {
+        if (_quotientAnswer.length < quotientText.length) {
+          final idx = min(_quotientAnswer.length, quotientText.length - 1);
+          _hint =
+              _quotientAnswer.isEmpty
+                  ? 'Quotient starts with: ${quotientText[0]}'
+                  : 'Next quotient digit: ${quotientText[idx]}';
+          _activeField = AnswerField.quotient;
+        } else {
+          final idx = min(_remainderAnswer.length, remainderText.length - 1);
+          _hint =
+              _remainderAnswer.isEmpty
+                  ? 'Remainder starts with: ${remainderText[0]}'
+                  : 'Next remainder digit: ${remainderText[idx]}';
+          _activeField = AnswerField.remainder;
+        }
+        _roundStats = _roundStats.copyWith(
+          hintsUsed: _roundStats.hintsUsed + 1,
+        );
+        _mayaMood = MayaMood.thinking;
+        _mayaLine = 'Hint added.';
+      });
+      return;
+    }
     final resultText = _equation.result.toString();
     final idx =
         _answer.length < resultText.length
@@ -275,6 +360,58 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   }
 
   void _checkAnswer() {
+    if (_isRemainderMode) {
+      if (_quotientAnswer.isEmpty || _remainderAnswer.isEmpty) {
+        setState(() {
+          _feedback = 'Enter quotient and remainder.';
+          _mayaMood = MayaMood.thinking;
+          _mayaLine = 'Fill both fields.';
+        });
+        return;
+      }
+      final parsedQuotient = int.tryParse(_quotientAnswer);
+      final parsedRemainder = int.tryParse(_remainderAnswer);
+      if (parsedQuotient == null || parsedRemainder == null) {
+        setState(() {
+          _feedback = 'Numbers only.';
+          _mayaMood = MayaMood.thinking;
+          _mayaLine = 'Input should be numeric.';
+        });
+        return;
+      }
+      final expectedQuotient = _equation.a ~/ _equation.b;
+      final expectedRemainder = _equation.a % _equation.b;
+      if (parsedQuotient == expectedQuotient &&
+          parsedRemainder == expectedRemainder) {
+        setState(() {
+          _feedback = 'Correct.';
+          _mayaMood = MayaMood.happy;
+          _mayaLine = 'Good work.';
+          if (!_answeredCorrectly) {
+            _answeredCorrectly = true;
+            _totalStars += 1;
+            _currentStreak += 1;
+            _bestStreak = max(_bestStreak, _currentStreak);
+            _roundStats = _roundStats.copyWith(
+              correct: _roundStats.correct + 1,
+            );
+          }
+        });
+        return;
+      }
+      setState(() {
+        _feedback = 'Incorrect. Try again.';
+        _mayaMood = MayaMood.oops;
+        _mayaLine = 'Check and retry.';
+        _currentStreak = 0;
+        if (!_answeredCorrectly) {
+          _roundStats = _roundStats.copyWith(
+            incorrect: _roundStats.incorrect + 1,
+          );
+        }
+      });
+      return;
+    }
     if (_answer.isEmpty) {
       setState(() {
         _feedback = 'Enter an answer first.';
@@ -328,7 +465,13 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     if (_revealedSolution) return;
     setState(() {
       _revealedSolution = true;
-      _feedback = 'Solution: ${_equation.result}';
+      if (_isRemainderMode) {
+        final q = _equation.a ~/ _equation.b;
+        final r = _equation.a % _equation.b;
+        _feedback = 'Solution: Q $q, R $r';
+      } else {
+        _feedback = 'Solution: ${_equation.result}';
+      }
       _roundStats = _roundStats.copyWith(
         solutionsShown: _roundStats.solutionsShown + 1,
       );
@@ -504,12 +647,43 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                               (op) => ChoiceChip(
                                 label: Text(_operationLabel[op]!),
                                 selected: _operation == op,
-                                onSelected:
-                                    (_) => setState(() => _operation = op),
+                                onSelected: (_) {
+                                  setState(() {
+                                    _operation = op;
+                                    if (_operation != Operation.division) {
+                                      _useRemainders = false;
+                                    }
+                                  });
+                                },
                               ),
                             )
                             .toList(),
                   ),
+                  if (_operation == Operation.division) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Division Answer Mode',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Exact Only'),
+                          selected: !_useRemainders,
+                          onSelected:
+                              (_) => setState(() => _useRemainders = false),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Use Remainders'),
+                          selected: _useRemainders,
+                          onSelected:
+                              (_) => setState(() => _useRemainders = true),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   const Text(
                     'Digits',
@@ -642,14 +816,54 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                                 '${_operationSymbol[_equation.operation]} ${_equation.b}',
                               ),
                               const Divider(thickness: 2),
-                              _eqLine(
-                                _revealedSolution
-                                    ? '${_equation.result}'
-                                    : (_answer.isEmpty ? '?' : _answer),
-                              ),
+                              if (_isRemainderMode)
+                                _remainderAnswerDisplay()
+                              else
+                                _eqLine(
+                                  _revealedSolution
+                                      ? '${_equation.result}'
+                                      : (_answer.isEmpty ? '?' : _answer),
+                                ),
                             ],
                           ),
                         ),
+                        if (_isRemainderMode) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ChoiceChip(
+                                  label: Text(
+                                    'Q ${_quotientAnswer.isEmpty ? "?" : _quotientAnswer}',
+                                  ),
+                                  selected:
+                                      _activeField == AnswerField.quotient,
+                                  onSelected:
+                                      (_) => setState(
+                                        () =>
+                                            _activeField = AnswerField.quotient,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: ChoiceChip(
+                                  label: Text(
+                                    'R ${_remainderAnswer.isEmpty ? "?" : _remainderAnswer}',
+                                  ),
+                                  selected:
+                                      _activeField == AnswerField.remainder,
+                                  onSelected:
+                                      (_) => setState(
+                                        () =>
+                                            _activeField =
+                                                AnswerField.remainder,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -816,6 +1030,25 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       style: const TextStyle(
         fontSize: 30,
         height: 1.15,
+        fontWeight: FontWeight.w800,
+        fontFeatures: [FontFeature.tabularFigures()],
+      ),
+    );
+  }
+
+  Widget _remainderAnswerDisplay() {
+    final q =
+        _revealedSolution
+            ? (_equation.a ~/ _equation.b).toString()
+            : (_quotientAnswer.isEmpty ? '?' : _quotientAnswer);
+    final r =
+        _revealedSolution
+            ? (_equation.a % _equation.b).toString()
+            : (_remainderAnswer.isEmpty ? '?' : _remainderAnswer);
+    return Text(
+      'Q:$q  R:$r',
+      style: const TextStyle(
+        fontSize: 24,
         fontWeight: FontWeight.w800,
         fontFeatures: [FontFeature.tabularFigures()],
       ),
