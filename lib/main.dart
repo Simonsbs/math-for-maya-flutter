@@ -115,7 +115,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   String _hint = '';
   bool _revealedSolution = false;
   bool _answeredCorrectly = false;
-  bool _carryInputMode = false;
   String _carryMarks = '';
 
   RoundStats _roundStats = RoundStats.empty;
@@ -231,7 +230,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
     _hint = '';
     _revealedSolution = false;
     _answeredCorrectly = false;
-    _carryInputMode = false;
     _carryMarks = '';
   }
 
@@ -265,13 +263,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _tapDigit(String digit) {
     if (_revealedSolution) return;
     setState(() {
-      if (_canUseCarryInput && _carryInputMode) {
-        if (_carryMarks.length < 8) {
-          _carryMarks = '$_carryMarks$digit';
-        }
-        _feedback = '';
-        return;
-      }
       if (_isRemainderMode) {
         if (_activeField == AnswerField.quotient &&
             _quotientAnswer.length < 8) {
@@ -291,13 +282,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _backspace() {
     if (_revealedSolution) return;
     setState(() {
-      if (_canUseCarryInput && _carryInputMode) {
-        if (_carryMarks.isNotEmpty) {
-          _carryMarks = _carryMarks.substring(0, _carryMarks.length - 1);
-        }
-        _feedback = '';
-        return;
-      }
       if (_isRemainderMode) {
         if (_activeField == AnswerField.quotient &&
             _quotientAnswer.isNotEmpty) {
@@ -316,11 +300,6 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   void _clear() {
     if (_revealedSolution) return;
     setState(() {
-      if (_canUseCarryInput && _carryInputMode) {
-        _carryMarks = '';
-        _feedback = '';
-        return;
-      }
       if (_isRemainderMode) {
         if (_activeField == AnswerField.quotient) {
           _quotientAnswer = '';
@@ -497,7 +476,18 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
       _mayaMood = MayaMood.thinking;
       _mayaLine = 'Review and continue.';
       _currentStreak = 0;
-      _carryInputMode = false;
+    });
+  }
+
+  void _carryTheOne() {
+    if (!_canUseCarryInput || _revealedSolution) return;
+    setState(() {
+      if (_carryMarks.length < 8) {
+        _carryMarks = '$_carryMarks${1}';
+      }
+      _feedback = '';
+      _mayaMood = MayaMood.thinking;
+      _mayaLine = 'Carry 1 added.';
     });
   }
 
@@ -827,34 +817,15 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                         const Text('Solve'),
                         const SizedBox(height: 4),
                         _verticalEquationWidget(),
-                        if (_canUseCarryInput && !_revealedSolution) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Text('Answer'),
-                                  selected: !_carryInputMode,
-                                  onSelected:
-                                      (_) => setState(
-                                        () => _carryInputMode = false,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Text('Carry'),
-                                  selected: _carryInputMode,
-                                  onSelected:
-                                      (_) => setState(
-                                        () => _carryInputMode = true,
-                                      ),
-                                ),
-                              ),
-                            ],
+                        if (_canUseCarryInput && !_revealedSolution)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: FilledButton.tonal(
+                              style: _compactActionButtonStyle(),
+                              onPressed: _carryTheOne,
+                              child: const Text('Carry the 1'),
+                            ),
                           ),
-                        ],
                         if (_isRemainderMode) ...[
                           const SizedBox(height: 4),
                           Row(
@@ -1097,7 +1068,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
             : List<String>.filled(colCount, '');
     final showCarryRow =
         _equation.operation == Operation.addition &&
-        (_revealedSolution || _carryMarks.isNotEmpty || _carryInputMode);
+        (_revealedSolution || _carryMarks.isNotEmpty);
     final carryDisplayDigits =
         _revealedSolution ? carries : _manualCarryRow(colCount);
 
