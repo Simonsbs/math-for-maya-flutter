@@ -1078,15 +1078,17 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                         color: Color(0xFF1F2A44),
                       ),
                     ),
-                    const SizedBox(height: 7),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: LinearProgressIndicator(
-                        minHeight: 8,
-                        value: progress,
-                        backgroundColor: const Color(0xFFD7E2FB),
+                    if (!_isEndlessRound) ...[
+                      const SizedBox(height: 7),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          minHeight: 8,
+                          value: progress,
+                          backgroundColor: const Color(0xFFD7E2FB),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
