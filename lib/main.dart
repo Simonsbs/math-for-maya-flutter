@@ -98,7 +98,7 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
   Operation _operation = Operation.addition;
   int _digits = 1;
   int _roundLength = 10;
-  bool _useRemainders = false;
+  final bool _useRemainders = false;
 
   late Equation _equation;
   int _questionNumber = 1;
@@ -125,6 +125,10 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
 
   static const List<int> _digitChoices = [1, 2, 3, 4];
   static const List<int> _roundChoices = [5, 10, 15];
+  static const List<Operation> _enabledOperations = [
+    Operation.addition,
+    Operation.subtraction,
+  ];
 
   static const Map<Operation, String> _operationLabel = {
     Operation.addition: 'Addition',
@@ -690,48 +694,17 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                     spacing: 8,
                     runSpacing: 8,
                     children:
-                        Operation.values
+                        _enabledOperations
                             .map(
                               (op) => ChoiceChip(
                                 label: Text(_operationLabel[op]!),
                                 selected: _operation == op,
-                                onSelected: (_) {
-                                  setState(() {
-                                    _operation = op;
-                                    if (_operation != Operation.division) {
-                                      _useRemainders = false;
-                                    }
-                                  });
-                                },
+                                onSelected:
+                                    (_) => setState(() => _operation = op),
                               ),
                             )
                             .toList(),
                   ),
-                  if (_operation == Operation.division) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Division Answer Mode',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        ChoiceChip(
-                          label: const Text('Exact Only'),
-                          selected: !_useRemainders,
-                          onSelected:
-                              (_) => setState(() => _useRemainders = false),
-                        ),
-                        ChoiceChip(
-                          label: const Text('Use Remainders'),
-                          selected: _useRemainders,
-                          onSelected:
-                              (_) => setState(() => _useRemainders = true),
-                        ),
-                      ],
-                    ),
-                  ],
                   const SizedBox(height: 12),
                   const Text(
                     'Digits',
