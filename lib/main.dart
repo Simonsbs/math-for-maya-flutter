@@ -695,16 +695,38 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Vertical Maths Equations',
+                    'Choose a Math Module',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  const Text('One equation at a time with touch controls.'),
-                  const Spacer(),
-                  FilledButton.icon(
+                  const Text('Pick a module to start practicing.'),
+                  const SizedBox(height: 14),
+                  _moduleButton(
+                    icon: Icons.vertical_align_center,
+                    name: 'Vertical Equations',
+                    subtitle: 'Solve one equation at a time',
                     onPressed: () => setState(() => _page = AppPage.setup),
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start'),
+                  ),
+                  const SizedBox(height: 10),
+                  _moduleButton(
+                    icon: Icons.speed,
+                    name: 'Speed Challenge',
+                    subtitle: 'Coming soon',
+                    onPressed: null,
+                  ),
+                  const SizedBox(height: 10),
+                  _moduleButton(
+                    icon: Icons.grid_view,
+                    name: 'Times Tables',
+                    subtitle: 'Coming soon',
+                    onPressed: null,
+                  ),
+                  const SizedBox(height: 10),
+                  _moduleButton(
+                    icon: Icons.extension,
+                    name: 'Logic Puzzles',
+                    subtitle: 'Coming soon',
+                    onPressed: null,
                   ),
                 ],
               ),
@@ -712,6 +734,37 @@ class _MathForMayaGameState extends State<MathForMayaGame> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _moduleButton({
+    required IconData icon,
+    required String name,
+    required String subtitle,
+    required VoidCallback? onPressed,
+  }) {
+    return FilledButton.tonal(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 74),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(subtitle, style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
     );
   }
 
