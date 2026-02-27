@@ -1,4 +1,4 @@
-package com.example.math_for_maya_flutter
+package com.simonsbs.mathformaya
 
 import io.flutter.embedding.android.FlutterActivity
 

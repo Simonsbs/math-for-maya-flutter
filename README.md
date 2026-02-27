@@ -1,33 +1,29 @@
-# Math For Maya (Flutter)
+# Math For Maya (Flutter, Android Focus)
 
-Native Flutter mobile app for Android + iOS.
+Native Flutter app for **Math For Maya**.
 
-Implemented mode:
+Current implemented mode:
 - Vertical maths equations
 - Operations: addition, subtraction, multiplication, division
-- Digit selection and round length selection
+- Digit and round-size selection
 - One equation at a time
 - Actions: Hint, Check, Show Solution, Next Equation
-- Round summary with stats
+- Round summary and progress stats
 
-## Run on Android Emulator
+## Android Run (Emulator)
 
-Prerequisites:
-- Flutter installed
-- Android SDK + emulator installed
-
-Commands:
 ```bash
 export PATH=/opt/flutter/bin:/home/simon/Android/Sdk/platform-tools:/home/simon/Android/Sdk/emulator:$PATH
 cd /home/simon/math_for_maya_flutter
+emulator -avd Maya_Pixel_API_34 -no-snapshot-load -crash-report-mode disabled &
 flutter run -d emulator-5554
 ```
 
-## Build APK
+## Android Build (APK)
 
 ```bash
 cd /home/simon/math_for_maya_flutter
-flutter build apk --debug
+/opt/flutter/bin/flutter build apk --debug
 ```
 
 APK output:
